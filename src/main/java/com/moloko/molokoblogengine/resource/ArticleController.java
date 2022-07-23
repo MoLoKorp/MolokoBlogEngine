@@ -40,4 +40,8 @@ public class ArticleController {
     public void deleteArticle(@PathVariable String id) {
         articleRepository.deleteById(id).subscribe();
     }
+
+    public void test() {
+        System.out.println();
+    }
 }
