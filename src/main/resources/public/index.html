@@ -3,20 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <title>MolokoBlog</title>
-    <script>
-        fetch('article')
-            .then(response => response.json())
-            .then(articles => {
-                for (const article of articles) {
-                    const p = document.createElement('p')
-                    const articleText = document.createTextNode(`article ${article.id} ${article.text}`)
-                    p.appendChild(articleText);
-                    document.body.appendChild(p);
-                }
-            })
-    </script>
+    <script src="index.js" defer></script>
 </head>
 <body>
     <h1>Welcome to Moloko Blog!!!</h1>
+    <form id="create-article-form">
+        <input type="text" name="text" />
+        <input type="submit" value="Create article" />
+    </form>
+
 </body>
 </html>

@@ -54,9 +54,11 @@ class ArticleControllerTest {
     void testCreateArticle() {
         when(articleRepository.save(any(Article.class))).thenReturn(Mono.just(article1));
 
-        articleController.createArticle(article1);
+        var resultMono = articleController.createArticle(article1);
 
-        verify(articleRepository).save(any(Article.class));
+        StepVerifier.create(resultMono)
+                .expectNext(article1)
+                .verifyComplete();
     }
 
     @Test

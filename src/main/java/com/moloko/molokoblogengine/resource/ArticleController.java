@@ -36,8 +36,8 @@ public class ArticleController {
     }
 
     @PostMapping
-    public void createArticle(@Validated @RequestBody Article article) {
-        articleRepository.save(new Article(UUID.randomUUID().toString(), article.text())).subscribe();
+    public Mono<Article> createArticle(@Validated @RequestBody Article article) {
+        return articleRepository.save(new Article(UUID.randomUUID().toString(), article.text()));
     }
 
     @DeleteMapping("{id}")
