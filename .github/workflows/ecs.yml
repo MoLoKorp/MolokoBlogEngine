@@ -33,7 +33,7 @@ jobs:
           distribution: 'corretto'
 
       - name: Put secrets
-        run: sed -i 's/<PASSWORD>/$MONGO_PASSWORD/g' src/main/resources/application.properties
+        run: sed -i "s/<PASSWORD>/$MONGO_PASSWORD/g" src/main/resources/application.properties
         shell: bash
         env:
           MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
