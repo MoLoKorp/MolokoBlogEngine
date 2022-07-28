@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>MolokoBlog</title>
     <script>
-        fetch('http://localhost:8080/article')
+        fetch('article')
             .then(response => response.json())
             .then(articles => {
                 for (const article of articles) {
