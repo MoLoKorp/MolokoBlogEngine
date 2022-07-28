@@ -12,6 +12,7 @@ env:
   ECS_CLUSTER: Test
   ECS_TASK_DEFINITION: .aws/spring-boot-task.json
   CONTAINER_NAME: springboot
+  MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
 
 permissions:
   contents: read
