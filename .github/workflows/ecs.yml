@@ -12,7 +12,6 @@ env:
   ECS_CLUSTER: Test
   ECS_TASK_DEFINITION: .aws/spring-boot-task.json
   CONTAINER_NAME: springboot
-  MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
 
 permissions:
   contents: read
@@ -32,6 +31,12 @@ jobs:
         with:
           java-version: '17'
           distribution: 'corretto'
+
+      - name: Put secrets
+        run: sed -i 's/<PASSWORD>/$MONGO_PASSWORD/g' src/main/resources/application.properties
+        shell: bash
+        env:
+          MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
 
       - name: Build with Gradle
         uses: gradle/gradle-build-action@67421db6bd0bf253fb4bd25b31ebb98943c375e1
