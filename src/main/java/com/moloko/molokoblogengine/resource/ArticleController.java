@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -43,5 +44,10 @@ public class ArticleController {
     @DeleteMapping("{id}")
     public void deleteArticle(@PathVariable String id) {
         articleRepository.deleteById(id).subscribe();
+    }
+
+    @PutMapping("{id}")
+    public Mono<Article> updateArticle(@PathVariable String id, @Validated @RequestBody Article article) {
+        return articleRepository.save(new Article(id, article.text()));
     }
 }

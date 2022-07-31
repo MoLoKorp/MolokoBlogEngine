@@ -69,4 +69,15 @@ class ArticleControllerTest {
 
         verify(articleRepository).deleteById("test_id1");
     }
+
+    @Test
+    void testUpdateArticle() {
+        when(articleRepository.save(article1)).thenReturn(Mono.just(article1));
+
+        var resultMono = articleController.updateArticle("test_id1", article1);
+
+        StepVerifier.create(resultMono)
+                .expectNext(new Article("test_id1", "test_text1"))
+                .verifyComplete();
+    }
 }
