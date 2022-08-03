@@ -1,4 +1,4 @@
-'use strict'
+'use strict';
 
 function Route(name, htmlName, defaultRoute) {
     try {

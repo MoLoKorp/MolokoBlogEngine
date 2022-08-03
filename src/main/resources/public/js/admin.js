@@ -1,0 +1,1 @@
+Utils.displayArticles(spaRootElem);

@@ -19,7 +19,7 @@ Router.prototype = {
 
     constructor: function(routes) {
         this.routes = routes;
-        this.rootElem = document.getElementById('#molokoApp');
+        this.rootElem = document.getElementById('molokoApp');
     },
 
     init: function() {
@@ -48,11 +48,15 @@ Router.prototype = {
     },
 
     goToRoute: function(htmlName) {
-        console.log(htmlName);
         (function(scope) {
             fetch('views/' + htmlName)
             .then((response) => { return response.text(); })
             .then((html) => { scope.rootElem.innerHTML = html;})
         }) (this);
+
+        let script = document.createElement('script');
+        script.setAttribute("src", "js/" + htmlName.slice(0, -5) + ".js");
+        script.setAttribute("defer", "defer");
+        this.rootElem.appendChild(script);
     }
 }
