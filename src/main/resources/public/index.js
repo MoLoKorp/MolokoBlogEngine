@@ -8,7 +8,7 @@ fetch('article')
 
 const form = document.getElementById('create-article-form')
 
-form.onsubmit = function(event) {
+form.onsubmit = () => {
     const formData = new FormData(form);
     const body = JSON.stringify(Object.fromEntries(formData))
     fetch('article', { method: 'POST', headers: {'Content-Type': 'application/json'}, body })
@@ -17,9 +17,47 @@ form.onsubmit = function(event) {
     return false
 }
 
-const addArticle = function(article) {
+const addArticle = article => {
+    const div = document.createElement('div')
+    div.id = article.id
+
     const p = document.createElement('p')
     const articleText = document.createTextNode(`article ${article.id} ${article.text}`)
-    p.appendChild(articleText);
-    document.body.appendChild(p);
+    p.appendChild(articleText)
+    
+    const editButton = document.createElement('button')
+    editButton.innerHTML = 'edit'
+    editButton.onclick = () => {
+        const editArticleText = document.createElement('input')
+        editArticleText.value = article.text
+        editArticleText.name = 'text'
+
+        const updateButton = document.createElement('button')
+        updateButton.innerHTML = 'update'
+        
+        const form = document.createElement('form')
+        form.onsubmit = () => {
+            const formData = new FormData(form);
+            const body = JSON.stringify(Object.fromEntries(formData))
+            fetch(`article/${article.id}`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body })
+                .then(_response => window.location.reload())
+            return false
+        }
+        form.append(editArticleText, updateButton)
+
+        const div = document.getElementById(article.id)
+        div.replaceChildren(form)
+    }
+
+    const deleteButton = document.createElement('button')
+    deleteButton.innerHTML = 'delete'
+    deleteButton.onclick = () => {
+        fetch(`article/${article.id}`, { method: 'DELETE' })
+            .then(_response => window.location.reload())
+    }
+
+    div.appendChild(p)
+    div.appendChild(editButton)
+    div.appendChild(deleteButton)
+    document.body.appendChild(div)
 }
