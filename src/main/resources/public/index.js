@@ -22,7 +22,7 @@ const addArticle = article => {
     div.id = article.id
 
     const p = document.createElement('p')
-    const articleText = document.createTextNode(`article ${article.id} ${article.text}`)
+    const articleText = document.createTextNode(article.text)
     p.appendChild(articleText)
     
     const editButton = document.createElement('button')
