@@ -6,6 +6,17 @@ fetch('article')
         }
     })
 
+const redirectToFileInput = () => {
+    document.getElementById("import-file").click()
+}
+
+const importArticle = () => {
+    const importArticlesForm = document.getElementById('import-articles-form')
+    const body = new FormData(importArticlesForm)
+    fetch('article/import', { method: 'POST', body })
+        .then(response => window.location.reload())
+}
+
 const form = document.getElementById('create-article-form')
 
 form.onsubmit = () => {

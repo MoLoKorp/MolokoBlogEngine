@@ -12,10 +12,22 @@
         <button>login</button>
         <button>sign up</button>
     </div>
-    <h1>Welcome to Moloko Blog!!!</h1>
-    <form id="create-article-form">
+
+    <div id="import-export-menu">
+        <form action="article/export">
+            <button>Export</button>
+        </form>
+
+        <form id="import-articles-form">
+            <button type="button" id="import-button" onclick="redirectToFileInput()">Import</button>
+            <input type="file" accept=".json" name="file" id="import-file" onchange="importArticle()" hidden>
+        </form>
+    </div>
+
+    <form id="create-article-form" >
         <input name="text" />
         <button>create</button>
     </form>
+    <h1>Welcome to Moloko Blog!!!</h1>
 </body>
 </html>
