@@ -2,6 +2,15 @@ body {
   text-align: center;
 }
 
+form {
+    margin: 1w;
+    display: inline;
+}
+
+#import-export-menu {
+    margin: 1vw;
+}
+
 #menu {
   text-align: right;
 }
