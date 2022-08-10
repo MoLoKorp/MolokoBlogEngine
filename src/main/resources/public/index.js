@@ -6,6 +6,20 @@ fetch('article')
         }
     })
 
+const importArticlesForm = document.getElementById('import-articles-form')
+const importArticlesInput = document.getElementById('import-articles-input')
+const importBtn = document.getElementById('importBtn')
+
+importBtn.onclick = () => {
+    importArticlesInput.click();
+}
+
+importArticlesInput.onchange = () => {
+    const body = new FormData(importArticlesForm)
+    fetch('article/import', { method: 'POST', body })
+        .then(response => window.location.reload())
+}
+
 const form = document.getElementById('create-article-form')
 
 form.onsubmit = () => {
