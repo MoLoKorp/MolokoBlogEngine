@@ -5,3 +5,5 @@ pluginManagement {
 	}
 }
 rootProject.name = 'moloko-blog-engine'
+include 'backend'
+include 'frontend'
