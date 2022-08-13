@@ -31,7 +31,7 @@ jobs:
       with:
         java-version: '17'
         distribution: 'corretto'
-    - name: Build with Gradle
+    - name: Check format, linter, tests and coverage
       uses: gradle/gradle-build-action@67421db6bd0bf253fb4bd25b31ebb98943c375e1
       with:
-        arguments: build
+        arguments: check

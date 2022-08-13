@@ -3,6 +3,11 @@ package com.moloko.molokoblogengine.resource;
 import com.moloko.molokoblogengine.model.Article;
 import com.moloko.molokoblogengine.repository.ArticleRepository;
 import com.moloko.molokoblogengine.util.Shell;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Date;
+import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -24,84 +29,97 @@ import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Date;
-import java.util.UUID;
-
+/**
+ * Articles controller. Supports basic CRUD operation and export/import to JSON file via
+ * mongoimport/mongoexport utilities from the mongodb-tools package.
+ */
 @CrossOrigin
 @RestController
 @RequestMapping("/article")
 public class ArticleController {
-    private static final String MONGO_COLLECTION = "article";
-    public static final String MONGOIMPORT_TEMP_FILE = "temp.json";
-    @Autowired
-    ArticleRepository articleRepository;
-    @Autowired
-    Shell shell;
-    @Value("${spring.data.mongodb.uri}")
-    private String mongoUri;
+  private static final String MONGO_COLLECTION = "article";
+  public static final String MONGOIMPORT_TEMP_FILE = "temp.json";
+  @Autowired ArticleRepository articleRepository;
+  @Autowired Shell shell;
 
-    @GetMapping
-    public Flux<Article> getArticles() {
-        return articleRepository.findAll();
-    }
+  @Value("${spring.data.mongodb.uri}")
+  private String mongoUri;
 
-    @GetMapping("{id}")
-    public Mono<Article> getArticle(@PathVariable String id) {
-        return articleRepository.findById(id);
-    }
+  @GetMapping
+  public Flux<Article> getArticles() {
+    return articleRepository.findAll();
+  }
 
-    @PostMapping
-    public Mono<Article> createArticle(@Validated @RequestBody Article article) {
-        return articleRepository.save(new Article(UUID.randomUUID().toString(), article.text()));
-    }
+  @GetMapping("{id}")
+  public Mono<Article> getArticle(@PathVariable String id) {
+    return articleRepository.findById(id);
+  }
 
-    @DeleteMapping("{id}")
-    public void deleteArticle(@PathVariable String id) {
-        articleRepository.deleteById(id).subscribe();
-    }
+  @PostMapping
+  public Mono<Article> createArticle(@Validated @RequestBody Article article) {
+    return articleRepository.save(new Article(UUID.randomUUID().toString(), article.text()));
+  }
 
-    @PutMapping("{id}")
-    public Mono<Article> updateArticle(@PathVariable String id, @Validated @RequestBody Article article) {
-        return articleRepository.save(new Article(id, article.text()));
-    }
+  @DeleteMapping("{id}")
+  public void deleteArticle(@PathVariable String id) {
+    articleRepository.deleteById(id).subscribe();
+  }
 
-    @GetMapping("export")
-    public ResponseEntity<String> exportArticles() {
-        String[] command = {
-                "mongoexport",
-                "--uri", mongoUri,
-                "--collection", MONGO_COLLECTION
-        };
-        try {
-            Process p = shell.exec(command);
-            String body = StreamUtils.copyToString(p.getInputStream(), StandardCharsets.UTF_8);
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_DISPOSITION,
-                            "attachment; filename=\"articles" + new Date() + ".json\"")
-                    .body(body);
-        } catch (IOException e) {
-            return ResponseEntity.internalServerError().body("Unexpected error during export: " + e.getMessage());
-        }
-    }
+  @PutMapping("{id}")
+  public Mono<Article> updateArticle(
+      @PathVariable String id, @Validated @RequestBody Article article) {
+    return articleRepository.save(new Article(id, article.text()));
+  }
 
-    @PostMapping(value = "import", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
-    public ResponseEntity<String> importArticles(@RequestPart("file") FilePart file) {
-        String[] command = {
-                "mongoimport",
-                "--uri", mongoUri,
-                "--collection", MONGO_COLLECTION,
-                "--file", MONGOIMPORT_TEMP_FILE
-        };
-        file.transferTo(new File(MONGOIMPORT_TEMP_FILE)).subscribe();
-        try {
-            Process p = shell.exec(command);
-            String body = StreamUtils.copyToString(p.getInputStream(), StandardCharsets.UTF_8);
-            return ResponseEntity.ok(body);
-        } catch (IOException e) {
-            return ResponseEntity.internalServerError().body("Unexpected error during import: " + e.getMessage());
-        }
+  /**
+   * Exports articles to JSON file.
+   *
+   * @return all articles in JSON format
+   */
+  @GetMapping("export")
+  public ResponseEntity<String> exportArticles() {
+    String[] command = {"mongoexport", "--uri", mongoUri, "--collection", MONGO_COLLECTION};
+    try {
+      Process p = shell.exec(command);
+      String body = StreamUtils.copyToString(p.getInputStream(), StandardCharsets.UTF_8);
+      return ResponseEntity.ok()
+          .header(
+              HttpHeaders.CONTENT_DISPOSITION,
+              "attachment; filename=\"articles" + new Date() + ".json\"")
+          .body(body);
+    } catch (IOException e) {
+      return ResponseEntity.internalServerError()
+          .body("Unexpected error during export: " + e.getMessage());
     }
+  }
+
+  /**
+   * Imports articles from JSON file.
+   *
+   * @param file multipart JSON file with articles to import
+   * @return message with import result
+   */
+  @PostMapping(
+      value = "import",
+      consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+  public ResponseEntity<String> importArticles(@RequestPart("file") FilePart file) {
+    String[] command = {
+      "mongoimport",
+      "--uri",
+      mongoUri,
+      "--collection",
+      MONGO_COLLECTION,
+      "--file",
+      MONGOIMPORT_TEMP_FILE
+    };
+    file.transferTo(new File(MONGOIMPORT_TEMP_FILE)).subscribe();
+    try {
+      Process p = shell.exec(command);
+      String body = StreamUtils.copyToString(p.getInputStream(), StandardCharsets.UTF_8);
+      return ResponseEntity.ok(body);
+    } catch (IOException e) {
+      return ResponseEntity.internalServerError()
+          .body("Unexpected error during import: " + e.getMessage());
+    }
+  }
 }
