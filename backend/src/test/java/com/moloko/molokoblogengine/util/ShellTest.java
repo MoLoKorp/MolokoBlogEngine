@@ -13,6 +13,6 @@ class ShellTest {
     void testExec() throws IOException {
         Process p = new Shell().exec(new String[]{"echo", "test"});
 
-        assertEquals("test\n", StreamUtils.copyToString(p.getInputStream(), StandardCharsets.UTF_8));
+        assertEquals("tes\n", StreamUtils.copyToString(p.getInputStream(), StandardCharsets.UTF_8));
     }
 }
