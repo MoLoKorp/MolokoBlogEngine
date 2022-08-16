@@ -1,0 +1,29 @@
+{
+  "scenarioName": "Articles",
+  "requiredScenarioState": "Article created",
+  "request": {
+    "method": "GET",
+    "url": "/article"
+  },
+  "response": {
+    "status": 200,
+    "jsonBody": [
+      {
+        "id": "1",
+        "text": "article1"
+      },
+      {
+        "id": "2",
+        "text": "article2"
+      },
+      {
+        "id": "3",
+        "text": "article3"
+      },
+      {
+        "id": "4",
+        "text": "article4"
+      }
+    ]
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "scenarioName": "Articles",
+  "requiredScenarioState": "Started",
+  "newScenarioState": "Article created",
+  "request": {
+    "method": "POST",
+    "url": "/article"
+  },
+  "response": {
+    "status": 200,
+    "jsonBody": [
+      {
+        "id": "4",
+        "text": "article4"
+      }
+    ]
+  }
+}

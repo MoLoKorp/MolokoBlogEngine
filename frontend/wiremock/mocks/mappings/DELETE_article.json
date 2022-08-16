@@ -1,0 +1,12 @@
+{
+  "scenarioName": "Articles",
+  "requiredScenarioState": "Article created",
+  "newScenarioState": "Started",
+  "request": {
+    "method": "DELETE",
+    "url": "/article/4"
+  },
+  "response": {
+    "status": 200
+  }
+}

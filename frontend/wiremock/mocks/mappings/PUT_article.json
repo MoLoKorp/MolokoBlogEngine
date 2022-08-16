@@ -1,0 +1,15 @@
+{
+  "request": {
+    "method": "PUT",
+    "urlPattern": "/article/[1-4]"
+  },
+  "response": {
+    "status": 200,
+    "jsonBody": [
+      {
+        "id": "4",
+        "text": "article4"
+      }
+    ]
+  }
+}

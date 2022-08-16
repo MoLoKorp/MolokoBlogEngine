@@ -1,0 +1,22 @@
+plugins {
+    id 'java'
+}
+
+group = 'com.moloko'
+version = '0.0.1-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'com.github.tomakehurst:wiremock-jre8:2.33.2'
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ['wiremock']
+        }
+    }
+}
