@@ -1,22 +1,39 @@
 plugins {
-    id 'java'
+	id 'java'
+	id "com.github.node-gradle.node" version "3.4.0"
 }
 
 group = 'com.moloko'
 version = '0.0.1-SNAPSHOT'
 
 repositories {
-    mavenCentral()
+	mavenCentral()
 }
 
 dependencies {
-    implementation 'com.github.tomakehurst:wiremock-jre8:2.33.2'
+	implementation 'com.github.tomakehurst:wiremock-jre8:2.33.2'
 }
 
 sourceSets {
-    main {
-        java {
-            srcDirs = ['wiremock']
-        }
-    }
+	main {
+		java {
+			srcDirs = ['wiremock']
+		}
+	}
 }
+
+task installStandardJS(type: NpmTask) {
+	args = [
+		'install',
+		'standard',
+		'--save-dev'
+	]
+}
+
+task standardJS(type: NpxTask) {
+	dependsOn installStandardJS
+	command = 'standard'
+	args = ['js']
+}
+
+check.dependsOn standardJS

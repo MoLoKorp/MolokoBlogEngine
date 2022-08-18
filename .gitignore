@@ -25,3 +25,8 @@ build/
 .gradle/
 .idea/
 bin/
+
+# node
+frontend/node_modules
+frontend/package-lock.json
+frontend/package.json

@@ -1,13 +1,28 @@
-import { getArticles, createArticle, updateArticle, deleteArticle } from './service/articleService.js'
-import { redirectClickHandler, importArticlesHandler, createArticleHandler, addArticle } from './eventHandlers.js'
+import {
+  getArticles
+} from './service/articleService.js'
+import {
+  redirectClickHandler,
+  importArticlesHandler,
+  createArticleHandler,
+  addArticle
+} from './eventHandlers.js'
 
 for (const article of await getArticles()) {
-    addArticle(article)
+  addArticle(article)
 }
 
 const createArticleFormId = 'create-article-form'
-document.getElementById(createArticleFormId).onsubmit = createArticleHandler.bind(this, createArticleFormId)
+document.getElementById(
+  createArticleFormId
+).onsubmit = createArticleHandler.bind(this, createArticleFormId)
 
-document.getElementById('import-button').onclick = redirectClickHandler.bind(this, 'import-file')
+document.getElementById('import-button').onclick = redirectClickHandler.bind(
+  this,
+  'import-file'
+)
 
-document.getElementById("import-file").onchange = importArticlesHandler.bind(this, 'import-articles-form')
+document.getElementById('import-file').onchange = importArticlesHandler.bind(
+  this,
+  'import-articles-form'
+)

@@ -1,2 +1,34 @@
+plugins {
+    id 'java'
+    id "com.diffplug.spotless" version "6.9.1"
+    id 'checkstyle'
+}
+
 group = 'com.moloko'
 version = '0.0.1-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+/*----------------------------------FORMAT AND LINTER--------------------------------*/
+subprojects {
+    apply plugin: 'com.diffplug.spotless'
+    apply plugin: 'checkstyle'
+    spotless {
+        java {
+            googleJavaFormat()
+        }
+        groovyGradle {
+            greclipse()
+        }
+        format 'rest', {
+            target '**/*.css', '**/*.html'
+            prettier().configFile(project.getRootDir().toString() + '/prettierrc.yaml')
+        }
+    }
+    checkstyle {
+        toolVersion '10.3.2'
+        configFile project.getRootDir().toString() + '/checkstyle.xml' as File
+    }
+}
