@@ -23,7 +23,7 @@ subprojects {
             greclipse()
         }
         format 'rest', {
-            target '**/*.css', '**/*.html'
+            target 'css/**/*.css', 'index.html'
             prettier().configFile(project.getRootDir().toString() + '/prettierrc.yaml')
         }
     }
