@@ -22,18 +22,30 @@ sourceSets {
 	}
 }
 
-task installStandardJS(type: NpmTask) {
+task installNPMDependencies(type: NpmTask) {
 	args = [
 		'install',
+		'--save-dev',
 		'standard',
-		'--save-dev'
+		'jest'
 	]
 }
 
 task standardJS(type: NpxTask) {
-	dependsOn installStandardJS
+	dependsOn installNPMDependencies
 	command = 'standard'
-	args = ['js']
+	args = ['js', 'jest.config.js']
+}
+
+task jest(type: NodeTask) {
+	dependsOn installNPMDependencies
+	script = file('node_modules/jest/bin/jest.js')
+	options = ['--experimental-vm-modules']
+	args = [
+		'--config',
+		'./jest.config.js'
+	]
 }
 
 check.dependsOn standardJS
+check.dependsOn jest

@@ -29,7 +29,7 @@ const updateArticle = async (id, article) => {
 }
 
 const importArticles = async (importFile) =>
-  fetch('article/import', { method: 'POST', body: importFile })
+  await fetch('article/import', { method: 'POST', body: importFile })
 
 const deleteArticle = async (id) =>
   await fetch(`${config.apiUrl}/article/${id}`, { method: 'DELETE' })
