@@ -2,19 +2,18 @@ package com.moloko.molokoblogengine.model;
 
 import javax.validation.constraints.NotNull;
 
-import com.moloko.molokoblogengine.security.PasswordConfig;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import reactor.core.publisher.Mono;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * User of the api with particular role.
@@ -35,18 +34,22 @@ public class User implements UserDetails {
     @NotNull
     private String role;
 
-
     private Set<GrantedAuthority> roles = new HashSet<>();
 
-    public User(String username, String password) {
-        this.username = username;
-        this.password = new PasswordConfig().passwordEncoder().encode(password);
-        roles.add(new SimpleGrantedAuthority("ROLE_USER"));
+    public User(String username, String password, String role) {
+        this.username =  username;
+        this.password = password;
+        this.role = role;
+        this.roles.add(new SimpleGrantedAuthority("ROLE_" + role));
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return roles;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     @Override

@@ -12,6 +12,8 @@ import com.moloko.molokoblogengine.util.Shell;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.security.Principal;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -28,6 +30,8 @@ import reactor.test.StepVerifier;
 @ExtendWith(MockitoExtension.class)
 class ArticleControllerTest {
   @Mock private ArticleRepository articleRepositoryMock;
+
+  @Mock private Principal principal;
   @Mock private Shell shellMock;
   @InjectMocks private ArticleController articleControllerMock;
 
@@ -59,7 +63,7 @@ class ArticleControllerTest {
   void testCreateArticle() {
     when(articleRepositoryMock.save(any(Article.class))).thenReturn(Mono.just(article1));
 
-    var resultMono = articleControllerMock.createArticle(article1);
+    var resultMono = articleControllerMock.createArticle(article1, principal);
 
     StepVerifier.create(resultMono).expectNext(article1).verifyComplete();
   }
@@ -68,7 +72,7 @@ class ArticleControllerTest {
   void testDeleteArticle() {
     when(articleRepositoryMock.deleteById("test_id1")).thenReturn(Mono.empty());
 
-    articleControllerMock.deleteArticle("test_id1");
+    articleControllerMock.deleteArticle("test_id1", principal);
 
     verify(articleRepositoryMock).deleteById("test_id1");
   }
@@ -77,7 +81,7 @@ class ArticleControllerTest {
   void testUpdateArticle() {
     when(articleRepositoryMock.save(article1)).thenReturn(Mono.just(article1));
 
-    var resultMono = articleControllerMock.updateArticle("test_id1", article1);
+    var resultMono = articleControllerMock.updateArticle("test_id1", article1, principal);
 
     StepVerifier.create(resultMono)
         .expectNext(new Article("test_id1", "test_text1"))
