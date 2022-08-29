@@ -11,4 +11,4 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * @param text article content
  */
 @Document
-public record Article(@Id String id, @NotNull String text, @NotNull String owner) {}
+public record Article(@Id String id, @NotNull String text, String owner) {}

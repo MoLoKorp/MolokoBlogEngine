@@ -14,8 +14,10 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.multipart.FilePart;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.util.StreamUtils;
 import org.springframework.validation.annotation.Validated;
@@ -29,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -67,7 +70,6 @@ public class ArticleController {
 
   @Cacheable
   @GetMapping("{id}")
-  @PostAuthorize("returnObject.owner == authentication.principal.username")
   public Mono<Article> getArticle(@PathVariable String id) {
     return articleRepository.findById(id).cache();
   }
@@ -80,8 +82,19 @@ public class ArticleController {
 
   @Caching(evict = {@CacheEvict, @CacheEvict(key = ALL)})
   @DeleteMapping("{id}")
-  public void deleteArticle(@PathVariable String id, Authentication authentication) {
-        articleRepository.deleteById(id).subscribe();
+  public void deleteArticle(@PathVariable String id, Principal principal) {
+        articleRepository.findById(id).subscribe(
+            article -> {
+              if(principal.getName().equals(article.owner())) {
+                articleRepository.deleteById(id).subscribe();
+                ResponseEntity.status(200);
+              } else {
+                ResponseEntity.status(401);
+              }
+            },
+            error -> error.printStackTrace(),
+            () -> System.out.println("Completed without a value")
+        );
   }
 
   @CachePut(key = "#id")
