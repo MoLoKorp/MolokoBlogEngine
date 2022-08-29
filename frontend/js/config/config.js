@@ -1,4 +1,4 @@
-const local = false
+const local = true
 
 export default {
   apiUrl: local ? 'http://localhost:8089' : ''

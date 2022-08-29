@@ -1,7 +1,7 @@
 module.exports = {
   collectCoverage: true,
   collectCoverageFrom: [
-    'js/**/*.mjs', '!js/config/config.mjs', '!js/eventHandlers.mjs'
+    'js/**/*.js', '!js/config/config.js', '!js/eventHandlers.js'
   ],
   coverageThreshold: {
     global: {
