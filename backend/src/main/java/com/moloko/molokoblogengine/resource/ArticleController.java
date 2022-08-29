@@ -5,15 +5,30 @@ import com.moloko.molokoblogengine.repository.ArticleRepository;
 import com.moloko.molokoblogengine.util.Shell;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.annotation.*;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.multipart.FilePart;
+import org.springframework.security.access.prepost.PostAuthorize;
+import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.util.StreamUtils;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -31,6 +46,7 @@ import java.util.UUID;
 @CacheConfig(cacheNames = "articles")
 @CrossOrigin
 @RestController
+@EnableReactiveMethodSecurity
 @RequestMapping("/article")
 public class ArticleController {
   private static final String MONGO_COLLECTION = "article";
@@ -51,14 +67,15 @@ public class ArticleController {
 
   @Cacheable
   @GetMapping("{id}")
+  @PostAuthorize("returnObject.owner == authentication.principal.username")
   public Mono<Article> getArticle(@PathVariable String id) {
     return articleRepository.findById(id).cache();
   }
 
   @CacheEvict(key = ALL)
   @PostMapping
-  public Mono<Article> createArticle(@Validated @RequestBody Article article, Authentication authentication) {
-      return articleRepository.save(new Article(UUID.randomUUID().toString(), article.text()));
+  public Mono<Article> createArticle(@Validated @RequestBody Article article, Authentication authentication, Principal principal) {
+      return articleRepository.save(new Article(UUID.randomUUID().toString(), article.text(), principal.getName()));
   }
 
   @Caching(evict = {@CacheEvict, @CacheEvict(key = ALL)})
@@ -70,8 +87,12 @@ public class ArticleController {
   @CachePut(key = "#id")
   @CacheEvict(key = ALL)
   @PutMapping("{id}")
-  public Mono<Article> updateArticle(@PathVariable String id, @Validated @RequestBody Article article, Principal user) {
-        return articleRepository.save(new Article(id, article.text())).cache();
+  public Mono<Article> updateArticle(
+          @PathVariable String id,
+          @Validated @RequestBody Article article,
+          Principal principal
+  ) {
+        return articleRepository.save(new Article(id, article.text(), principal.getName())).cache();
   }
 
   /**
