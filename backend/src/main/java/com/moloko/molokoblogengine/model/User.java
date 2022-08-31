@@ -31,7 +31,6 @@ public class User implements UserDetails {
     @NotNull
     private String password;
 
-    @NotNull
     private String role;
 
     private Set<GrantedAuthority> roles = new HashSet<>();
@@ -39,8 +38,11 @@ public class User implements UserDetails {
     public User(String username, String password, String role) {
         this.username =  username;
         this.password = password;
-        this.role = role;
         this.roles.add(new SimpleGrantedAuthority("ROLE_" + role));
+    }
+
+    public void addAuthority(String authority) {
+        this.roles.add(new SimpleGrantedAuthority(authority));
     }
 
     @Override

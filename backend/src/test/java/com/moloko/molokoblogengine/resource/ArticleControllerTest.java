@@ -72,7 +72,7 @@ class ArticleControllerTest {
   void testDeleteArticle() {
     when(articleRepositoryMock.deleteById("test_id1")).thenReturn(Mono.empty());
 
-    articleControllerMock.deleteArticle("test_id1", principal);
+    articleControllerMock.deleteArticle("test_id1");
 
     verify(articleRepositoryMock).deleteById("test_id1");
   }
@@ -81,7 +81,7 @@ class ArticleControllerTest {
   void testUpdateArticle() {
     when(articleRepositoryMock.save(article1)).thenReturn(Mono.just(article1));
 
-    var resultMono = articleControllerMock.updateArticle("test_id1", article1, principal);
+    var resultMono = articleControllerMock.updateArticle("test_id1", article1);
 
     StepVerifier.create(resultMono)
         .expectNext(new Article("test_id1", "test_text1"))

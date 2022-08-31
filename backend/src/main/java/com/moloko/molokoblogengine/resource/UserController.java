@@ -48,7 +48,7 @@ public class UserController {
     userRepository.deleteById(id).subscribe();
   }
 
-  @DeleteMapping(path = "/deleteall")
+  @DeleteMapping
   public void deleteUsers() {
     userRepository.deleteAll().subscribe();
   }

@@ -2,6 +2,7 @@ package com.moloko.molokoblogengine.resource;
 
 import com.moloko.molokoblogengine.model.Article;
 import com.moloko.molokoblogengine.repository.ArticleRepository;
+import com.moloko.molokoblogengine.repository.UserRepository;
 import com.moloko.molokoblogengine.util.Shell;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,18 +12,16 @@ import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.multipart.FilePart;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.core.Authentication;
 import org.springframework.util.StreamUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -30,8 +29,9 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -57,6 +57,7 @@ public class ArticleController {
   private static final String ALL = "'all'";
 
   @Autowired ArticleRepository articleRepository;
+  @Autowired UserRepository userRepository;
   @Autowired Shell shell;
 
   @Value("${spring.data.mongodb.uri}")
@@ -76,25 +77,39 @@ public class ArticleController {
 
   @CacheEvict(key = ALL)
   @PostMapping
-  public Mono<Article> createArticle(@Validated @RequestBody Article article, Authentication authentication, Principal principal) {
+  public Mono<Article> createArticle(@Validated @RequestBody Article article, Principal principal) {
       return articleRepository.save(new Article(UUID.randomUUID().toString(), article.text(), principal.getName()));
   }
 
   @Caching(evict = {@CacheEvict, @CacheEvict(key = ALL)})
+  @ResponseStatus(HttpStatus.FORBIDDEN)
+  class ForbiddenException extends RuntimeException {
+    public ForbiddenException() {
+      super("Access denied", null, false, false);
+    }
+  }
+
+  @ResponseBody
+  @ExceptionHandler(ForbiddenException.class)
+  public Mono<ResponseEntity> handleForviddenException() {
+    return Mono.just(new ResponseEntity("Access Denied", HttpStatus.FORBIDDEN));
+  }
+
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  class NotFoundException extends RuntimeException { }
+
   @DeleteMapping("{id}")
-  public void deleteArticle(@PathVariable String id, Principal principal) {
-        articleRepository.findById(id).subscribe(
-            article -> {
-              if(principal.getName().equals(article.owner())) {
-                articleRepository.deleteById(id).subscribe();
-                ResponseEntity.status(200);
-              } else {
-                ResponseEntity.status(401);
-              }
-            },
-            error -> error.printStackTrace(),
-            () -> System.out.println("Completed without a value")
-        );
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public Mono deleteArticle(@PathVariable String id, Principal principal) {
+    return articleRepository
+            .findById(id)
+            .switchIfEmpty(Mono.error(new NotFoundException()))
+            .filter(article -> principal.getName().equals(article.owner()))
+            .switchIfEmpty(Mono.error(new ForbiddenException()))
+            .doOnNext(
+                article -> {
+                  articleRepository.deleteById(id).subscribe();
+            });
   }
 
   @CachePut(key = "#id")
