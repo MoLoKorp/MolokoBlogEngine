@@ -92,7 +92,7 @@ public class ArticleController {
   @ResponseBody
   @ExceptionHandler(ForbiddenException.class)
   public Mono<ResponseEntity> handleForviddenException() {
-    return Mono.just(new ResponseEntity("Access Denied", HttpStatus.FORBIDDEN));
+    return Mono.just(new ResponseEntity("Access denied", HttpStatus.FORBIDDEN));
   }
 
   @ResponseStatus(HttpStatus.NOT_FOUND)
@@ -116,11 +116,16 @@ public class ArticleController {
   @CacheEvict(key = ALL)
   @PutMapping("{id}")
   public Mono<Article> updateArticle(
-          @PathVariable String id,
-          @Validated @RequestBody Article article,
-          Principal principal
-  ) {
-        return articleRepository.save(new Article(id, article.text(), principal.getName())).cache();
+      @PathVariable String id, @Validated @RequestBody Article updatedArticle, Principal principal) {
+          return articleRepository
+                  .findById(id)
+                  .switchIfEmpty(Mono.error(new NotFoundException()))
+                  .filter(article -> principal.getName().equals(article.owner()))
+                  .switchIfEmpty(Mono.error(new ForbiddenException()))
+                  .doOnNext(
+                          _article -> {
+                            articleRepository.save(new Article(id, updatedArticle.text(), principal.getName())).subscribe();
+                          }).thenReturn(new Article(id, updatedArticle.text(), principal.getName())).cache();
   }
 
   /**

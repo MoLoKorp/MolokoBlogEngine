@@ -1,21 +1,17 @@
 package com.moloko.molokoblogengine.resource;
 
 import com.moloko.molokoblogengine.model.User;
+import com.moloko.molokoblogengine.repository.ArticleRepository;
 import com.moloko.molokoblogengine.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.parameters.P;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.webjars.NotFoundException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -25,7 +21,11 @@ import reactor.core.publisher.Mono;
 @RequestMapping("/user")
 public class UserController {
   @Autowired UserRepository userRepository;
+  @Autowired ArticleRepository articleRepository;
   @Autowired PasswordEncoder passwordEncoder;
+
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  class NotFoundException extends RuntimeException { }
 
   @GetMapping
   public Flux<User> getUsers() {
@@ -44,8 +44,21 @@ public class UserController {
   }
 
   @DeleteMapping("{id}")
-  public void deleteUser(@PathVariable String id) {
-    userRepository.deleteById(id).subscribe();
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public Mono deleteUser(@PathVariable String id) {
+    return userRepository.findById(id)
+            .switchIfEmpty(Mono.error(new NotFoundException()))
+            .doOnNext(
+              user -> {
+                articleRepository.findAll().
+                        filter(article -> article.owner().equals(user.getUsername()))
+                        .switchIfEmpty(Mono.error(new NotFoundException()))
+                        .doOnNext(article ->
+                        {
+                          articleRepository.deleteById(article.id()).subscribe();
+                        });
+                });
+     //       .doOnNext(user -> userRepository.deleteById(id).subscribe());
   }
 
   @DeleteMapping
