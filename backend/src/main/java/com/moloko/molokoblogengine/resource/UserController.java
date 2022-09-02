@@ -46,19 +46,13 @@ public class UserController {
   @DeleteMapping("{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public Mono deleteUser(@PathVariable String id) {
+    articleRepository.findAll().
+            filter(article -> article.owner().equals(id))
+            .doOnNext(article -> articleRepository.deleteById(article.id()).subscribe()).subscribe();
+
     return userRepository.findById(id)
             .switchIfEmpty(Mono.error(new NotFoundException()))
-            .doOnNext(
-              user -> {
-                articleRepository.findAll().
-                        filter(article -> article.owner().equals(user.getUsername()))
-                        .switchIfEmpty(Mono.error(new NotFoundException()))
-                        .doOnNext(article ->
-                        {
-                          articleRepository.deleteById(article.id()).subscribe();
-                        });
-                });
-     //       .doOnNext(user -> userRepository.deleteById(id).subscribe());
+            .doOnNext(user -> userRepository.deleteById(id).subscribe());
   }
 
   @DeleteMapping

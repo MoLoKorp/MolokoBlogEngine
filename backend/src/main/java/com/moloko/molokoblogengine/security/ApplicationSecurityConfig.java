@@ -48,7 +48,7 @@ public class ApplicationSecurityConfig {
                 .pathMatchers("/user", "/user/**").hasRole("ADMIN")
                 .pathMatchers(HttpMethod.DELETE, "/article", "/article/**").hasAnyRole("ADMIN", "USER")
                 .pathMatchers(HttpMethod.PUT, "/article", "/article/**").hasAnyRole("ADMIN", "USER")
-                .pathMatchers(HttpMethod.GET, "/article", "/article/**").hasAnyRole("ADMIN", "USER")
+                .pathMatchers(HttpMethod.GET, "/article", "/article/**").permitAll()
                 .pathMatchers(HttpMethod.POST, "/article", "/article/**").hasAnyRole("ADMIN", "USER")
                 .anyExchange().authenticated()
                 .and()
