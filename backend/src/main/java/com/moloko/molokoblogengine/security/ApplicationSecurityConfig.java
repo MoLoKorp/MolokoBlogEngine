@@ -52,6 +52,7 @@ public class ApplicationSecurityConfig {
                 .pathMatchers(HttpMethod.POST, "/article", "/article/**").hasAnyRole("ADMIN", "USER")
                 .anyExchange().authenticated()
                 .and()
+                .formLogin().disable()
                 .httpBasic();
         return http.build();
     }
