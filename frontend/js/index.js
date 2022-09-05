@@ -1,4 +1,3 @@
-const test = 1
 import {
   getArticles
 } from './service/articleService.js'
