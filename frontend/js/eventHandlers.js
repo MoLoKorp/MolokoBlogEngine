@@ -5,7 +5,7 @@ import {
   importArticles
 } from './service/articleService.js'
 
-const addArticle = (article) => {
+const addArticle = (article, rootId) => {
   const div = document.createElement('div')
   div.id = article.id
 
@@ -22,27 +22,21 @@ const addArticle = (article) => {
   deleteButton.onclick = () =>
     deleteArticle(article.id).then((_response) => window.location.reload())
 
-  div.appendChild(p)
-  div.appendChild(editButton)
-  div.appendChild(deleteButton)
-  document.body.appendChild(div)
+  div.append(p, editButton, deleteButton)
+  document.getElementById(rootId).appendChild(div)
 }
 
 const redirectClickHandler = (buttonId) => {
   document.getElementById(buttonId).click()
 }
 
-const importArticlesHandler = (formId) => {
+const importArticlesHandler = async (formId) => {
   const importArticlesForm = document.getElementById(formId)
-  // eslint-disable-next-line no-undef
-  importArticles(new FormData(importArticlesForm)).then((response) =>
-    window.location.reload()
-  )
+  await importArticles(new FormData(importArticlesForm))
 }
 
 const createArticleHandler = (formId) => {
   const createArticleForm = document.getElementById(formId)
-  // eslint-disable-next-line no-undef
   const formData = new FormData(createArticleForm)
   createArticle(Object.fromEntries(formData)).then((response) =>
     window.location.reload()
@@ -51,7 +45,6 @@ const createArticleHandler = (formId) => {
 }
 
 const updateArticleHandler = (articleId, form) => {
-  // eslint-disable-next-line no-undef
   const formData = new FormData(form)
   updateArticle(articleId, Object.fromEntries(formData)).then((_response) =>
     window.location.reload()
