@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width" />
+  <title>MolokoBlog</title>
+      <link  href="src/css_styles/main.css" rel="stylesheet" type="text/css"/>
+</head>
+<body>
+
+<div id="app" style="padding: 0">
+  <!--#include file="src/components/MenuBar.shtml"-->
+
+    <menu-bar></menu-bar>
+</div>
+<script>
+  let menuI = [
+    {'leftItem': 'Home'},
+    {'leftItem': 'Export'},
+    {'leftItem': 'Import'},
+    {'rightItem': 'Sing Up'},
+    {'rightItem': 'Login'}
+  ]
+</script>
+<script src="src/components/Menubar.js"></script>
+
+</body>
