@@ -1,6 +1,7 @@
 
 <template id="menu">
             <ul class="menu-base">
+                <li class="menu-logo-li" id="logo"><img class="menu-item-logo" src="" alt="Home" id="img-logo"/></li>
                 <li class="menu-item"><a class="active menu-item-link" href=""></a></li>
             </ul>
 </template>

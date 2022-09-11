@@ -1,6 +1,6 @@
 class MenuBar extends HTMLElement {
     constructor() {
-        super();
+        super()
         this.component = document.querySelector('#menu')
     }
     addMenuItem(menuI, item) {
@@ -14,20 +14,30 @@ class MenuBar extends HTMLElement {
                 itemIter.classList.add('menu-item-link')
                 itemIter.classList.add('active')
                 itemIter.innerText = it.leftItem
-                menuItemIter.appendChild(itemIter)
-            } else {
+            }
+            if (key === 'rightItem') {
                 itemIter.classList.add('menu-item-link')
                 menuItemIter.classList.add('right')
                 itemIter.innerText = it.rightItem
-                menuItemIter.appendChild(itemIter)
             }
+            menuItemIter.appendChild(itemIter)
             this.component.content.querySelector('.menu-base').appendChild(menuItemIter)
         })
     }
     connectedCallback() {
         let item = this.component.content.querySelector('.menu-item-link')
         if (menuI) { this.addMenuItem(menuI, item) }
-        this.appendChild(this.component.content.cloneNode(true));
+        this.appendChild(this.component.content.cloneNode(true))
+    }
+    attributeChangedCallback(attrName, oldValue, newValue) {
+        if (attrName === 'name') {
+            if (newValue) {
+               let img = this.component.content.querySelector('#img-logo')
+               img.src = newValue
+            } else {
+                this._name = '';
+            }
+        }
     }
 }
 MenuBar.observedAttributes = ['name'];

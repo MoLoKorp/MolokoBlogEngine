@@ -9,10 +9,11 @@
 <body>
 
 <div id="app" style="padding: 0">
-  <!--#include file="src/components/MenuBar.shtml"-->
-
-    <menu-bar></menu-bar>
+  <!--#include file="src/components/menuBar/MenuBar.shtml"-->
+    <menu-bar name="https://img.icons8.com/officel/40/000000/year-of-goat.png"></menu-bar>
 </div>
+
+
 <script>
   let menuI = [
     {'leftItem': 'Home'},
@@ -22,6 +23,6 @@
     {'rightItem': 'Login'}
   ]
 </script>
-<script src="src/components/Menubar.js"></script>
+<script src="src/components/menuBar/Menubar.js"></script>
 
 </body>
