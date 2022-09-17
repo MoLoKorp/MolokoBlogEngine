@@ -27,7 +27,8 @@ task installNPMDependencies(type: NpmTask) {
 		'install',
 		'--save-dev',
 		'standard',
-		'jest'
+		'jest',
+		'jest-environment-jsdom'
 	]
 }
 
