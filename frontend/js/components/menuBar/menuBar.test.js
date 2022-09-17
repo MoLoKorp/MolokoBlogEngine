@@ -1,4 +1,4 @@
-import  MenuBar  from 'frontend/js/components/menuBar/menuBar.js'
+import  MenuBar  from 'menuBar.js'
 
 import { test, beforeEach } from '@jest/globals'
 
