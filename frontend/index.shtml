@@ -8,6 +8,12 @@
     <link rel="stylesheet" href="css/styles.css" />
   </head>
   <body>
+  <div id="app" style="padding: 0">
+    <!--#include file="src/components/menuBar/MenuBar.shtml"-->
+    <menu-bar name="https://img.icons8.com/officel/40/000000/year-of-goat.png"></menu-bar>
+  </div>
+
+
     <div id="menu">
       <button>login</button>
       <button>sign up</button>
@@ -29,5 +35,16 @@
       <button>create</button>
     </form>
     <h1>Welcome to Moloko Blog!!!</h1>
+
+  <script>
+    let menuI = [
+      {'leftItem': 'Home'},
+      {'leftItem': 'Export'},
+      {'leftItem': 'Import'},
+      {'rightItem': 'Sing Up'},
+      {'rightItem': 'Login'}
+    ]
+  </script>
+  <script src="js/components/menuBar/menuBar.js"></script>
   </body>
 </html>
