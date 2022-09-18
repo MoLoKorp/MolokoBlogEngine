@@ -27,14 +27,21 @@ task installNPMDependencies(type: NpmTask) {
 		'install',
 		'--save-dev',
 		'standard',
-		'jest'
+		'jest',
+		'jest-environment-jsdom'
 	]
 }
 
 task standardJS(type: NpxTask) {
 	dependsOn installNPMDependencies
 	command = 'standard'
-	args = ['js', 'jest.config.js']
+	args = [
+		'--env',
+		'browser',
+		'js',
+		'jest.config.js',
+		'--fix'
+	]
 }
 
 task jest(type: NodeTask) {

@@ -1,11 +1,11 @@
 module.exports = {
   collectCoverage: true,
   collectCoverageFrom: [
-    'js/**/*.mjs', '!js/config/config.mjs', '!js/eventHandlers.mjs'
+    'js/**/*.js', '!js/config/config.js', '!js/eventHandlers.js', '!js/index.js'
   ],
   coverageThreshold: {
     global: {
-      lines: 100
+      lines: 95
     }
   }
 }
