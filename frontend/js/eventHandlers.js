@@ -2,7 +2,8 @@ import {
   createArticle,
   updateArticle,
   deleteArticle,
-  importArticles
+  importArticles,
+  getArticles
 } from './service/articleService.js'
 
 const addArticle = (article, rootId) => {
@@ -24,6 +25,12 @@ const addArticle = (article, rootId) => {
 
   div.append(p, editButton, deleteButton)
   document.getElementById(rootId).appendChild(div)
+}
+
+const getArticlesHandler = async () => {
+  for (const article of await getArticles()) {
+    addArticle(article, 'root')
+  }
 }
 
 const redirectClickHandler = () => {
@@ -69,5 +76,6 @@ export {
   redirectClickHandler,
   importArticlesHandler,
   createArticleHandler,
-  addArticle
+  addArticle,
+  getArticlesHandler
 }

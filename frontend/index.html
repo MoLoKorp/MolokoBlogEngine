@@ -15,8 +15,8 @@
         <li><a href="/registration" class="routed">Registration</a></li>
       </ul>
     </nav>
-    <app-router defaultView="articles">
-      <route path="/" view="articles" />
+    <app-router default="/">
+      <route path="/" view="articles" prescript="./eventHandlers#getArticlesHandler"/>
       <route path="/admin" view="admin" />
       <route path="/registration" view="registration" />
     </app-router>

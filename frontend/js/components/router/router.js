@@ -20,24 +20,23 @@ Example:
 export class Router extends HTMLElement {
   static #routes = {}
   static #root
-  static #defaultView
+  static #default
 
   constructor () {
     super()
 
-    Router.#defaultView = this.getAttribute('defaultView')
+    Router.#default = this.getAttribute('default')
 
     Router.#root = document.createElement('div')
     Router.#root.id = 'root'
     this.after(Router.#root)
 
-    const script = document.createElement('script')
-    script.type = 'module'
-    script.id = 'script'
-    document.getElementsByTagName('head')[0].appendChild(script)
-
     for (const route of this.getElementsByTagName('route')) {
-      Router.#routes[route.getAttribute('path')] = route.getAttribute('view')
+      Router.#routes[route.getAttribute('path')] =
+          {
+            view: route.getAttribute('view'),
+            prescript: route.getAttribute('prescript')
+          }
     }
 
     for (const el of document.getElementsByClassName('routed')) {
@@ -45,31 +44,27 @@ export class Router extends HTMLElement {
     }
 
     window.addEventListener('popstate', async function () {
-      await Router.#addViewToRouterDom(Router.#routes[window.location.pathname] || Router.#defaultView)
+      await Router.#addViewToRouterDom(window.location.pathname || Router.#default)
     })
 
     window.addEventListener('DOMContentLoaded', async function () {
-      await Router.#addViewToRouterDom(Router.#defaultView)
+      await Router.#addViewToRouterDom(Router.#default)
     })
   }
 
   async #renderView (event) {
     event.preventDefault()
     history.pushState({}, '', event.target.href)
-    await Router.#addViewToRouterDom(Router.#routes[window.location.pathname] || Router.#defaultView)
+    await Router.#addViewToRouterDom(window.location.pathname || Router.#default)
     return false
   }
 
-  static async #addViewToRouterDom (view) {
+  static async #addViewToRouterDom (route) {
+    const {view, prescript} = Router.#routes[route]
     Router.#root.innerHTML = await (await fetch(`${config.apiUrl}/views/${view}.html`)).text()
-
-    document.getElementById('script').remove()
-
-    const script = document.createElement('script')
-    script.id = 'script'
-    script.type = 'module'
-    script.src = `${config.apiUrl}/views/${view}.js?${new Date().getTime()}`
-    script.src = `views/${view}.js?${new Date().getTime()}`
-    document.getElementsByTagName('head')[0].appendChild(script)
+    if (prescript) {
+      const [modulePath, func] = prescript.split('#')
+      import(`../../${modulePath}.js`).then(mod => mod[func]())
+    }
   }
 }
