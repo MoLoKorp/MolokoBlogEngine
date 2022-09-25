@@ -68,6 +68,7 @@ export class Router extends HTMLElement {
     const script = document.createElement('script')
     script.id = 'script'
     script.type = 'module'
+    script.src = `${config.apiUrl}/views/${view}.js?${new Date().getTime()}`
     script.src = `views/${view}.js?${new Date().getTime()}`
     document.getElementsByTagName('head')[0].appendChild(script)
   }

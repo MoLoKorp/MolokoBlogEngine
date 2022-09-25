@@ -26,19 +26,16 @@ const addArticle = (article, rootId) => {
   document.getElementById(rootId).appendChild(div)
 }
 
-const redirectClickHandler = (buttonId) => {
-  document.getElementById(buttonId).click()
+const redirectClickHandler = () => {
+  document.getElementById('import-file').click()
 }
 
-const importArticlesHandler = async (formId) => {
-  const importArticlesForm = document.getElementById(formId)
-  await importArticles(new FormData(importArticlesForm))
+const importArticlesHandler = async (e) => {
+  await importArticles(new FormData(e.target.parentElement))
 }
 
-const createArticleHandler = (formId) => {
-  const createArticleForm = document.getElementById(formId)
-  const formData = new FormData(createArticleForm)
-  createArticle(Object.fromEntries(formData)).then((response) =>
+const createArticleHandler = (e) => {
+  createArticle(Object.fromEntries(new FormData(e.target))).then((_response) =>
     window.location.reload()
   )
   return false
