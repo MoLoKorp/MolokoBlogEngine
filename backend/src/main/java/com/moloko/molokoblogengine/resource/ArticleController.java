@@ -41,6 +41,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.util.Date;
 import java.util.UUID;
+import java.util.function.Predicate;
 
 /**
  * Articles controller. Supports basic CRUD operation and export/import to JSON file via
@@ -65,46 +66,34 @@ public class ArticleController {
 
   @Cacheable(key = ALL)
   @GetMapping
+  @PreAuthorize("permitAll()")
   public Flux<Article> getArticles() {
     return articleRepository.findAll().cache();
   }
 
   @Cacheable
   @GetMapping("{id}")
+  @PreAuthorize("permitAll()")
   public Mono<Article> getArticle(@PathVariable String id) {
     return articleRepository.findById(id).cache();
   }
 
   @CacheEvict(key = ALL)
   @PostMapping
+  @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER')")
   public Mono<Article> createArticle(@Validated @RequestBody Article article, Principal principal) {
       return articleRepository.save(new Article(UUID.randomUUID().toString(), article.text(), principal.getName()));
   }
 
   @Caching(evict = {@CacheEvict, @CacheEvict(key = ALL)})
-  @ResponseStatus(HttpStatus.FORBIDDEN)
-  class ForbiddenException extends RuntimeException {
-    public ForbiddenException() {
-      super("Access denied", null, false, false);
-    }
-  }
-
-  @ResponseBody
-  @ExceptionHandler(ForbiddenException.class)
-  public Mono<ResponseEntity> handleForviddenException() {
-    return Mono.just(new ResponseEntity("Access denied", HttpStatus.FORBIDDEN));
-  }
-
-  @ResponseStatus(HttpStatus.NOT_FOUND)
-  class NotFoundException extends RuntimeException { }
-
   @DeleteMapping("{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
+  @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER')")
   public Mono deleteArticle(@PathVariable String id, Principal principal) {
     return articleRepository
             .findById(id)
             .switchIfEmpty(Mono.error(new NotFoundException()))
-            .filter(article -> principal.getName().equals(article.owner()))
+            .filter(isOwner(principal.getName()))
             .switchIfEmpty(Mono.error(new ForbiddenException()))
             .doOnNext(
                 article -> {
@@ -115,12 +104,13 @@ public class ArticleController {
   @CachePut(key = "#id")
   @CacheEvict(key = ALL)
   @PutMapping("{id}")
+  @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER')")
   public Mono<Article> updateArticle(
       @PathVariable String id, @Validated @RequestBody Article updatedArticle, Principal principal) {
           return articleRepository
                   .findById(id)
                   .switchIfEmpty(Mono.error(new NotFoundException()))
-                  .filter(article -> principal.getName().equals(article.owner()))
+                  .filter(isOwner(principal.getName()))
                   .switchIfEmpty(Mono.error(new ForbiddenException()))
                   .doOnNext(
                           _article -> {
@@ -134,6 +124,7 @@ public class ArticleController {
    * @return all articles in JSON format
    */
   @GetMapping("export")
+  @PreAuthorize("hasRole('ROLE_ADMIN')")
   public ResponseEntity<String> exportArticles() {
     String[] command = {"mongoexport", "--uri", mongoUri, "--collection", MONGO_COLLECTION};
     try {
@@ -156,9 +147,11 @@ public class ArticleController {
    * @param file multipart JSON file with articles to import
    * @return message with import result
    */
+
   @PostMapping(
       value = "import",
       consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+  @PreAuthorize("hasRole('ROLE_ADMIN')")
   public ResponseEntity<String> importArticles(@RequestPart("file") FilePart file) {
     String[] command = {
       "mongoimport",
@@ -178,5 +171,23 @@ public class ArticleController {
       return ResponseEntity.internalServerError()
           .body("Unexpected error during import: " + e.getMessage());
     }
+  }
+
+  @ResponseStatus(HttpStatus.FORBIDDEN)
+  class ForbiddenException extends RuntimeException {
+
+  }
+
+  @ResponseBody
+  @ExceptionHandler(ForbiddenException.class)
+  public Mono<ResponseEntity> handleForviddenException() {
+    return Mono.just(new ResponseEntity("Access denied", HttpStatus.FORBIDDEN));
+  }
+
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  class NotFoundException extends RuntimeException { }
+
+  private Predicate<Article> isOwner(String owner) {
+    return article -> article.owner().equals(owner);
   }
 }
