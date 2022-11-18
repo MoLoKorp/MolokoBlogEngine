@@ -10,6 +10,11 @@ import java.util.Date;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -33,42 +38,51 @@ import reactor.core.publisher.Mono;
  * Articles controller. Supports basic CRUD operation and export/import to JSON file via
  * mongoimport/mongoexport utilities from the mongodb-tools package.
  */
+@CacheConfig(cacheNames = "articles")
 @CrossOrigin
 @RestController
 @RequestMapping("/article")
 public class ArticleController {
   private static final String MONGO_COLLECTION = "article";
-  public static final String MONGOIMPORT_TEMP_FILE = "temp.json";
+  private static final String MONGOIMPORT_TEMP_FILE = "temp.json";
+  private static final String ALL = "'all'";
+
   @Autowired ArticleRepository articleRepository;
   @Autowired Shell shell;
 
   @Value("${spring.data.mongodb.uri}")
   private String mongoUri;
 
+  @Cacheable(key = ALL)
   @GetMapping
   public Flux<Article> getArticles() {
-    return articleRepository.findAll();
+    return articleRepository.findAll().cache();
   }
 
+  @Cacheable
   @GetMapping("{id}")
   public Mono<Article> getArticle(@PathVariable String id) {
-    return articleRepository.findById(id);
+    return articleRepository.findById(id).cache();
   }
 
+  @CacheEvict(key = ALL)
   @PostMapping
   public Mono<Article> createArticle(@Validated @RequestBody Article article) {
     return articleRepository.save(new Article(UUID.randomUUID().toString(), article.text()));
   }
 
+  @Caching(evict = {@CacheEvict, @CacheEvict(key = ALL)})
   @DeleteMapping("{id}")
   public void deleteArticle(@PathVariable String id) {
     articleRepository.deleteById(id).subscribe();
   }
 
+  @CachePut(key = "#id")
+  @CacheEvict(key = ALL)
   @PutMapping("{id}")
   public Mono<Article> updateArticle(
       @PathVariable String id, @Validated @RequestBody Article article) {
-    return articleRepository.save(new Article(id, article.text()));
+    return articleRepository.save(new Article(id, article.text())).cache();
   }
 
   /**

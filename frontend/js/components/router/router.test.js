@@ -25,7 +25,8 @@ describe('Router', () => {
     document.body.innerHTML = `
         <body>
             <a href="/secondView" class="routed">
-            <app-router defaultView="firstView">
+            <app-router default="/">
+                <route path="/" view="firstView" />
                 <route path="/secondView" view="secondView" />
             </app-router>
         </body>`
@@ -33,34 +34,23 @@ describe('Router', () => {
 
   test('mounts root div', async () => {
     const rootDiv = document.getElementById('root')
+
     expect(rootDiv).not.toBeNull()
     expect(rootDiv.firstChild).toBeNull()
   })
 
-  test('renders the second view on the link click', async () => {
+  test('open the second view and go back to the first', async () => {
     document.getElementsByClassName('routed')[0].click()
     await new Promise(resolve => setTimeout(resolve, 10))
 
-    const rootDiv = document.getElementById('root')
+    let rootDiv = document.getElementById('root')
     expect(rootDiv.firstChild).not.toBeNull()
     expect(rootDiv.firstChild.textContent).toEqual('secondView')
-    expect(document.head.innerHTML).toContain('script id="script" type="module" src="views/secondView.js')
 
     history.back()
     await new Promise(resolve => setTimeout(resolve, 10))
 
+    rootDiv = document.getElementById('root')
     expect(rootDiv.firstChild.textContent).toEqual('firstView')
-    expect(document.head.innerHTML).toContain('script id="script" type="module" src="views/firstView.js')
-  })
-
-  test('goes back to the first view through the history API', async () => {
-    document.getElementsByClassName('routed')[0].click()
-    await new Promise(resolve => setTimeout(resolve, 10))
-    history.back()
-    await new Promise(resolve => setTimeout(resolve, 10))
-
-    const rootDiv = document.getElementById('root')
-    expect(rootDiv.firstChild.textContent).toEqual('firstView')
-    expect(document.head.innerHTML).toContain('script id="script" type="module" src="views/firstView.js')
   })
 })

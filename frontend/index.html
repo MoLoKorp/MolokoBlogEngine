@@ -16,7 +16,11 @@
       </ul>
     </nav>
     <app-router default="/">
-      <route path="/" view="articles" prescript="./eventHandlers#getArticlesHandler"/>
+      <route
+        path="/"
+        view="articles"
+        prescript="./eventHandlers#getArticlesHandler"
+      />
       <route path="/admin" view="admin" />
       <route path="/registration" view="registration" />
     </app-router>
