@@ -1,5 +1,3 @@
-import config from '../../config/config.js'
-
 /*
 The following custom html element is used to dynamically render external html/js views to the single page.
 To prepare view, create html and non-mandatory js file in views folder with the same name (e.g. home.html/home.js).
@@ -61,7 +59,7 @@ export class Router extends HTMLElement {
 
   static async #addViewToRouterDom (route) {
     const { view, prescript } = Router.#routes[route]
-    Router.#root.innerHTML = await (await fetch(`${config.apiUrl}/views/${view}.html`)).text()
+    Router.#root.innerHTML = await (await fetch(`/views/${view}.html`)).text()
     if (prescript) {
       const [modulePath, func] = prescript.split('#')
       import(`../../${modulePath}.js`).then(mod => mod[func]())
