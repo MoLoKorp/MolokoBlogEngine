@@ -14,12 +14,6 @@ jar {
 	enabled = false
 }
 
-bootJar {
-	from('../frontend') {
-		into 'public'
-	}
-}
-
 repositories {
 	mavenCentral()
 }
