@@ -61,7 +61,7 @@ export class Router extends HTMLElement {
 
   static async #addViewToRouterDom (route) {
     const { view, prescript } = Router.#routes[route]
-    Router.#root.innerHTML = await (await fetch(`${config.apiUrl}/views/${view}.html`)).text()
+    Router.#root.innerHTML = await (await fetch(`/views/${view}.html`)).text()
     if (prescript) {
       const [modulePath, func] = prescript.split('#')
       import(`../../${modulePath}.js`).then(mod => mod[func]())
