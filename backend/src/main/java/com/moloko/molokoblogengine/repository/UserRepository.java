@@ -9,5 +9,5 @@ import reactor.core.publisher.Mono;
 /** Reactive User MongoDB repository with basic operations. */
 @Repository
 public interface UserRepository extends ReactiveMongoRepository<User, String> {
-    Mono<UserDetails> findByUsername(String username);
+  Mono<UserDetails> findByUsername(String username);
 }

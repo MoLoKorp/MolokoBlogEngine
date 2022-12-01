@@ -3,7 +3,6 @@ package com.moloko.molokoblogengine.resource;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.moloko.molokoblogengine.model.Article;
@@ -13,7 +12,6 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.security.Principal;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -38,8 +36,8 @@ class ArticleControllerTest {
   @Mock private Process processMock;
   @Mock private FilePart filePartMock;
 
-  private static final Article article1 = new Article("test_id1", "test_text1");
-  private static final Article article2 = new Article("test_id2", "test_text2");
+  private static final Article article1 = new Article("test_id1", "test_text1", "test_owner1");
+  private static final Article article2 = new Article("test_id2", "test_text2", "test_owner2");
 
   @Test
   void testGetArticles() {
@@ -62,6 +60,7 @@ class ArticleControllerTest {
   @Test
   void testCreateArticle() {
     when(articleRepositoryMock.save(any(Article.class))).thenReturn(Mono.just(article1));
+    when(principal.getName()).thenReturn("test_owner1");
 
     var resultMono = articleControllerMock.createArticle(article1, principal);
 
@@ -70,21 +69,25 @@ class ArticleControllerTest {
 
   @Test
   void testDeleteArticle() {
+    when(articleRepositoryMock.findById("test_id1")).thenReturn(Mono.just(article1));
     when(articleRepositoryMock.deleteById("test_id1")).thenReturn(Mono.empty());
+    when(principal.getName()).thenReturn("test_owner1");
 
-    articleControllerMock.deleteArticle("test_id1");
+    var resultMono = articleControllerMock.deleteArticle("test_id1", principal);
 
-    verify(articleRepositoryMock).deleteById("test_id1");
+    StepVerifier.create(resultMono).expectNext(article1).verifyComplete();
   }
 
   @Test
   void testUpdateArticle() {
+    when(articleRepositoryMock.findById("test_id1")).thenReturn(Mono.just(article1));
     when(articleRepositoryMock.save(article1)).thenReturn(Mono.just(article1));
+    when(principal.getName()).thenReturn("test_owner1");
 
-    var resultMono = articleControllerMock.updateArticle("test_id1", article1);
+    var resultMono = articleControllerMock.updateArticle("test_id1", article1, principal);
 
     StepVerifier.create(resultMono)
-        .expectNext(new Article("test_id1", "test_text1"))
+        .expectNext(new Article("test_id1", "test_text1", "test_owner1"))
         .verifyComplete();
   }
 

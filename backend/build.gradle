@@ -39,7 +39,8 @@ tasks.named('test') {
 /*----------------------------------JACOCO CONFIG--------------------------------*/
 def excludes = [
 	'com/moloko/molokoblogengine/model/**',
-	'com/moloko/molokoblogengine/MolokoBlogEngineApplication.*'
+	'com/moloko/molokoblogengine/MolokoBlogEngineApplication.*',
+	'com/moloko/molokoblogengine/config/ApplicationSecurityConfig.*'
 ]
 
 private excludeJacoco(classDirectories, excludes) {

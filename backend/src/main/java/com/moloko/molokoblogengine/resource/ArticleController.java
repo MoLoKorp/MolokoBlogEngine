@@ -2,8 +2,14 @@ package com.moloko.molokoblogengine.resource;
 
 import com.moloko.molokoblogengine.model.Article;
 import com.moloko.molokoblogengine.repository.ArticleRepository;
-import com.moloko.molokoblogengine.repository.UserRepository;
 import com.moloko.molokoblogengine.util.Shell;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.Principal;
+import java.util.Date;
+import java.util.UUID;
+import java.util.function.Predicate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheConfig;
@@ -16,12 +22,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.multipart.FilePart;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
 import org.springframework.util.StreamUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,19 +35,11 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.security.Principal;
-import java.util.Date;
-import java.util.UUID;
-import java.util.function.Predicate;
 
 /**
  * Articles controller. Supports basic CRUD operation and export/import to JSON file via
@@ -56,9 +54,10 @@ public class ArticleController {
   private static final String MONGO_COLLECTION = "article";
   private static final String MONGOIMPORT_TEMP_FILE = "temp.json";
   private static final String ALL = "'all'";
+  private static final String ARTICLE_NOT_FOUND = "Article is not found";
+  private static final String ARTICLE_FORBIDDEN = "Article is not owned by user";
 
   @Autowired ArticleRepository articleRepository;
-  @Autowired UserRepository userRepository;
   @Autowired Shell shell;
 
   @Value("${spring.data.mongodb.uri}")
@@ -82,47 +81,60 @@ public class ArticleController {
   @PostMapping
   @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER')")
   public Mono<Article> createArticle(@Validated @RequestBody Article article, Principal principal) {
-      return articleRepository.save(new Article(UUID.randomUUID().toString(), article.text(), principal.getName()));
+    return articleRepository.save(
+        new Article(UUID.randomUUID().toString(), article.text(), principal.getName()));
   }
 
+  /**
+   * Deletes article. Only owner or admin access.
+   *
+   * @return article with updated text
+   */
   @Caching(evict = {@CacheEvict, @CacheEvict(key = ALL)})
   @DeleteMapping("{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER')")
-  public Mono deleteArticle(@PathVariable String id, Principal principal) {
+  public Mono<Article> deleteArticle(@PathVariable String id, Principal principal) {
     return articleRepository
-            .findById(id)
-            .switchIfEmpty(Mono.error(new NotFoundException()))
-            .filter(isOwner(principal.getName()))
-            .switchIfEmpty(Mono.error(new ForbiddenException()))
-            .doOnNext(
-                article -> {
-                  articleRepository.deleteById(id).subscribe();
-            });
+        .findById(id)
+        .switchIfEmpty(
+            Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND, ARTICLE_NOT_FOUND)))
+        .filter(isOwner(principal.getName()))
+        .switchIfEmpty(
+            Mono.error(new ResponseStatusException(HttpStatus.FORBIDDEN, ARTICLE_FORBIDDEN)))
+        .doOnNext(article -> articleRepository.deleteById(id).subscribe());
   }
 
+  /**
+   * Updates article. Only owner or admin access.
+   *
+   * @return article with updated text
+   */
   @CachePut(key = "#id")
   @CacheEvict(key = ALL)
   @PutMapping("{id}")
   @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER')")
   public Mono<Article> updateArticle(
-      @PathVariable String id, @Validated @RequestBody Article updatedArticle, Principal principal) {
-          return articleRepository
-                  .findById(id)
-                  .switchIfEmpty(Mono.error(new NotFoundException()))
-                  .filter(isOwner(principal.getName()))
-                  .switchIfEmpty(Mono.error(new ForbiddenException()))
-                  .doOnNext(
-                          _article -> {
-                            articleRepository.save(new Article(id, updatedArticle.text(), principal.getName())).subscribe();
-                          }).thenReturn(new Article(id, updatedArticle.text(), principal.getName())).cache();
+      @PathVariable String id,
+      @Validated @RequestBody Article updatedArticle,
+      Principal principal) {
+    return articleRepository
+        .findById(id)
+        .switchIfEmpty(
+            Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND, ARTICLE_NOT_FOUND)))
+        .filter(isOwner(principal.getName()))
+        .switchIfEmpty(
+            Mono.error(new ResponseStatusException(HttpStatus.FORBIDDEN, ARTICLE_FORBIDDEN)))
+        .map(
+            ignored -> {
+              var article = new Article(id, updatedArticle.text(), principal.getName());
+              articleRepository.save(article).subscribe();
+              return article;
+            })
+        .cache();
   }
 
-  /**
-   * Exports articles to JSON file.
-   *
-   * @return all articles in JSON format
-   */
+  /** Exports articles to JSON file. */
   @GetMapping("export")
   @PreAuthorize("hasRole('ROLE_ADMIN')")
   public ResponseEntity<String> exportArticles() {
@@ -147,7 +159,6 @@ public class ArticleController {
    * @param file multipart JSON file with articles to import
    * @return message with import result
    */
-
   @PostMapping(
       value = "import",
       consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
@@ -172,20 +183,6 @@ public class ArticleController {
           .body("Unexpected error during import: " + e.getMessage());
     }
   }
-
-  @ResponseStatus(HttpStatus.FORBIDDEN)
-  class ForbiddenException extends RuntimeException {
-
-  }
-
-  @ResponseBody
-  @ExceptionHandler(ForbiddenException.class)
-  public Mono<ResponseEntity> handleForviddenException() {
-    return Mono.just(new ResponseEntity("Access denied", HttpStatus.FORBIDDEN));
-  }
-
-  @ResponseStatus(HttpStatus.NOT_FOUND)
-  class NotFoundException extends RuntimeException { }
 
   private Predicate<Article> isOwner(String owner) {
     return article -> article.owner().equals(owner);
