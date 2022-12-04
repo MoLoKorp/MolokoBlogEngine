@@ -33,7 +33,7 @@ class ApplicationSecurityConfig {
   ReactiveUserDetailsService userDetailsService() {
     return username ->
         userRepository
-            .findByUsername(username)
+            .findById(username)
             .map(
                 user ->
                     User.withUsername(user.username())
