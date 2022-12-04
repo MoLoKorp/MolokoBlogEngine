@@ -9,7 +9,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
  *
  * @param username used as an ID
  * @param password not empty
- * @param role not empty
+ * @param role ADMIN or USER
  */
 @Document
 public record User(@Id String username, @NotNull String password, @NotNull String role) {}

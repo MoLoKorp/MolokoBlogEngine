@@ -1,16 +1,14 @@
 package com.moloko.molokoblogengine.resource;
 
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import com.moloko.molokoblogengine.model.User;
 import com.moloko.molokoblogengine.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -18,6 +16,7 @@ import reactor.test.StepVerifier;
 @ExtendWith(MockitoExtension.class)
 class UserControllerTest {
   @Mock private UserRepository userRepositoryMock;
+  @Mock private PasswordEncoder passwordEncoder;
   @InjectMocks private UserController userControllerMock;
 
   private static final User user1 = new User("user1", "1234", "ADMIN");
@@ -25,7 +24,7 @@ class UserControllerTest {
 
   @Test
   void testGetUsers() {
-    when(userRepositoryMock.findAll()).thenReturn(Flux.just(user1, user2));
+    Mockito.when(userRepositoryMock.findAll()).thenReturn(Flux.just(user1, user2));
 
     var resultFlux = userControllerMock.getUsers();
 
@@ -34,7 +33,7 @@ class UserControllerTest {
 
   @Test
   void testGetUser() {
-    when(userRepositoryMock.findById("user1")).thenReturn(Mono.just(user1));
+    Mockito.when(userRepositoryMock.findById("user1")).thenReturn(Mono.just(user1));
 
     var resultMono = userControllerMock.getUser("user1");
 
@@ -42,8 +41,9 @@ class UserControllerTest {
   }
 
   @Test
-  void testCreateArticle() {
-    when(userRepositoryMock.save(any(User.class))).thenReturn(Mono.just(user1));
+  void testCreateUser() {
+    Mockito.when(userRepositoryMock.save(Mockito.any(User.class))).thenReturn(Mono.just(user1));
+    Mockito.when(passwordEncoder.encode("1234")).thenReturn("encoded1234");
 
     var resultMono = userControllerMock.createUser(user1);
 
@@ -51,11 +51,21 @@ class UserControllerTest {
   }
 
   @Test
-  void testDeleteArticle() {
-    when(userRepositoryMock.deleteById("user1")).thenReturn(Mono.empty());
+  void testDeleteUser() {
+    Mockito.when(userRepositoryMock.findById("user1")).thenReturn(Mono.just(user1));
+    Mockito.when(userRepositoryMock.deleteById("user1")).thenReturn(Mono.empty());
 
-    userControllerMock.deleteUser("user1");
+    var resultMono = userControllerMock.deleteUser("user1");
 
-    verify(userRepositoryMock).deleteById("user1");
+    StepVerifier.create(resultMono).verifyComplete();
+  }
+
+  @Test
+  void testDeleteUsers() {
+    Mockito.when(userRepositoryMock.deleteAll()).thenReturn(Mono.empty());
+
+    userControllerMock.deleteUsers();
+
+    Mockito.verify(userRepositoryMock).deleteAll();
   }
 }
