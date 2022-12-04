@@ -5,7 +5,6 @@ import com.moloko.molokoblogengine.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -24,7 +23,6 @@ import reactor.core.publisher.Mono;
 /** User controller with basic CRUD operations. */
 @CrossOrigin
 @RestController
-@EnableReactiveMethodSecurity
 @RequestMapping("/user")
 public class UserController {
   @Autowired UserRepository userRepository;
@@ -53,27 +51,29 @@ public class UserController {
   }
 
   @PostMapping
+  @ResponseStatus(HttpStatus.CREATED)
   @PreAuthorize("permitAll()")
   public Mono<User> createUser(@Validated @RequestBody User user) {
-    user.setPassword(passwordEncoder.encode(user.getPassword()));
-    return userRepository.save(user);
+    return userRepository.save(
+        new User(user.username(), passwordEncoder.encode(user.password()), user.role()));
   }
 
   /** Delete user by name. Admin access only. */
   @DeleteMapping("{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @PreAuthorize("hasRole('ROLE_ADMIN')")
-  public Mono deleteUser(@PathVariable String id) {
+  public Mono<Void> deleteUser(@PathVariable String id) {
     return userRepository
         .findById(id)
         .switchIfEmpty(
             Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND, USER_NOT_FOUND)))
-        .doOnNext(user -> userRepository.deleteById(id).subscribe());
+        .flatMap(user -> userRepository.deleteById(id));
   }
 
   @DeleteMapping
+  @ResponseStatus(HttpStatus.NO_CONTENT)
   @PreAuthorize("hasRole('ROLE_ADMIN')")
-  public void deleteUsers() {
-    userRepository.deleteAll().subscribe();
+  public Mono<Void> deleteUsers() {
+    return userRepository.deleteAll();
   }
 }

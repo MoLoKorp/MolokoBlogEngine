@@ -57,7 +57,7 @@ class UserControllerTest {
 
     var resultMono = userControllerMock.deleteUser("user1");
 
-    StepVerifier.create(resultMono).expectNext(user1).verifyComplete();
+    StepVerifier.create(resultMono).verifyComplete();
   }
 
   @Test

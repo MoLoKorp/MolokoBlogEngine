@@ -75,7 +75,7 @@ class ArticleControllerTest {
 
     var resultMono = articleControllerMock.deleteArticle("test_id1", principal);
 
-    StepVerifier.create(resultMono).expectNext(article1).verifyComplete();
+    StepVerifier.create(resultMono).verifyComplete();
   }
 
   @Test

@@ -23,7 +23,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
 import org.springframework.util.StreamUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -48,7 +47,6 @@ import reactor.core.publisher.Mono;
 @CacheConfig(cacheNames = "articles")
 @CrossOrigin
 @RestController
-@EnableReactiveMethodSecurity
 @RequestMapping("/article")
 public class ArticleController {
   private static final String MONGO_COLLECTION = "article";
@@ -79,6 +77,7 @@ public class ArticleController {
 
   @CacheEvict(key = ALL)
   @PostMapping
+  @ResponseStatus(HttpStatus.CREATED)
   @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER')")
   public Mono<Article> createArticle(@Validated @RequestBody Article article, Principal principal) {
     return articleRepository.save(
@@ -94,7 +93,7 @@ public class ArticleController {
   @DeleteMapping("{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER')")
-  public Mono<Article> deleteArticle(@PathVariable String id, Principal principal) {
+  public Mono<Void> deleteArticle(@PathVariable String id, Principal principal) {
     return articleRepository
         .findById(id)
         .switchIfEmpty(
@@ -102,7 +101,7 @@ public class ArticleController {
         .filter(isOwner(principal.getName()))
         .switchIfEmpty(
             Mono.error(new ResponseStatusException(HttpStatus.FORBIDDEN, ARTICLE_FORBIDDEN)))
-        .doOnNext(article -> articleRepository.deleteById(id).subscribe());
+        .flatMap(article -> articleRepository.deleteById(id));
   }
 
   /**
@@ -113,6 +112,7 @@ public class ArticleController {
   @CachePut(key = "#id")
   @CacheEvict(key = ALL)
   @PutMapping("{id}")
+  @ResponseStatus(HttpStatus.CREATED)
   @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER')")
   public Mono<Article> updateArticle(
       @PathVariable String id,
@@ -125,13 +125,11 @@ public class ArticleController {
         .filter(isOwner(principal.getName()))
         .switchIfEmpty(
             Mono.error(new ResponseStatusException(HttpStatus.FORBIDDEN, ARTICLE_FORBIDDEN)))
-        .map(
-            ignored -> {
-              var article = new Article(id, updatedArticle.text(), principal.getName());
-              articleRepository.save(article).subscribe();
-              return article;
-            })
-        .cache();
+        .flatMap(
+            article ->
+                articleRepository
+                    .save(new Article(id, updatedArticle.text(), principal.getName()))
+                    .cache());
   }
 
   /** Exports articles to JSON file. */
