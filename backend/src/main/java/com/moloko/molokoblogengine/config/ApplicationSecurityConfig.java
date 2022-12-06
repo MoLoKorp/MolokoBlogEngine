@@ -44,7 +44,7 @@ class ApplicationSecurityConfig {
 
   @Bean
   SecurityWebFilterChain securityConfig(ServerHttpSecurity http) {
-    return http.httpBasic().and().build();
+    return http.httpBasic().and().csrf().disable().build();
   }
 
   @ControllerAdvice
