@@ -1,14 +1,5 @@
-plugins {
-	id 'java'
-	id "com.github.node-gradle.node" version "3.4.0"
-}
-
 group = 'com.moloko'
 version = '0.0.1-SNAPSHOT'
-
-repositories {
-	mavenCentral()
-}
 
 dependencies {
 	implementation 'com.github.tomakehurst:wiremock-jre8:2.33.2'
@@ -21,38 +12,3 @@ sourceSets {
 		}
 	}
 }
-
-task installNPMDependencies(type: NpmTask) {
-	args = [
-		'install',
-		'--save-dev',
-		'standard',
-		'jest',
-		'jest-environment-jsdom'
-	]
-}
-
-task standardJS(type: NpxTask) {
-	dependsOn installNPMDependencies
-	command = 'standard'
-	args = [
-		'--env',
-		'browser',
-		'js',
-		'jest.config.js',
-		'--fix'
-	]
-}
-
-task jest(type: NodeTask) {
-	dependsOn installNPMDependencies
-	script = file('node_modules/jest/bin/jest.js')
-	options = ['--experimental-vm-modules']
-	args = [
-		'--config',
-		'./jest.config.js'
-	]
-}
-
-check.dependsOn standardJS
-check.dependsOn jest
