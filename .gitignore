@@ -28,7 +28,5 @@ bin/
 
 # node
 frontend/node_modules
-frontend/package-lock.json
-frontend/package.json
 frontend/coverage
 frontend/wiremock/mocks/__files/**

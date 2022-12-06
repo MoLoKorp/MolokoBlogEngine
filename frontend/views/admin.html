@@ -1,20 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+  <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
     <title>Articles</title>
-</head>
-<body>
+  </head>
+  <body>
     <div id="import-export-menu">
-        <form action="article/export">
-            <button>Export</button>
-        </form>
+      <form action="article/export">
+        <button>Export</button>
+      </form>
 
-        <form>
-            <button type="button" on#click="./eventHandlers#redirectClickHandler">Import</button>
-            <input type="file" accept=".json" name="file" id="import-file" hidden on#change="./eventHandlers#importArticlesHandler" />
-        </form>
+      <form>
+        <button type="button" on#click="./eventHandlers#redirectClickHandler">
+          Import
+        </button>
+        <input
+          type="file"
+          accept=".json"
+          name="file"
+          id="import-file"
+          hidden
+          on#change="./eventHandlers#importArticlesHandler"
+        />
+      </form>
     </div>
-</body>
+  </body>
 </html>

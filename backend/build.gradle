@@ -1,8 +1,9 @@
 plugins {
 	id 'org.springframework.boot' version '2.7.1'
 	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
-	id 'java'
 	id 'jacoco'
+	id "com.diffplug.spotless" version "6.9.1"
+	id 'checkstyle'
 }
 
 group = 'com.moloko'
@@ -12,10 +13,6 @@ sourceCompatibility = '17'
 // disable generation of thin JAR as we use SpringBoot jar
 jar {
 	enabled = false
-}
-
-repositories {
-	mavenCentral()
 }
 
 dependencies {
@@ -68,3 +65,17 @@ jacocoTestCoverageVerification {
 	}
 }
 check.dependsOn jacocoTestCoverageVerification
+
+spotless {
+	java {
+		googleJavaFormat()
+	}
+	groovyGradle {
+		greclipse()
+	}
+}
+
+checkstyle {
+	toolVersion '10.3.2'
+	configFile 'checkstyle.xml' as File
+}

@@ -1,0 +1,29 @@
+{
+  "name": "moloko-blog-engine-frontend",
+  "version": "0.0.1",
+  "description": "VanillaJS MolokoBlogEngine frontend",
+  "scripts": {
+    "start": "serve",
+    "test": "NODE_OPTIONS=--experimental-vm-modules npx jest",
+    "lint": "standard --env browser js jest.config.js --fix && prettier --check index.html views",
+    "format": "prettier --write index.html views"
+  },
+  "devDependencies": {
+    "jest": "^28.1.3",
+    "jest-environment-jsdom": "^29.3.1",
+    "prettier": "^2.8.0",
+    "serve": "^14.1.2",
+    "standard": "^17.0.0"
+  },
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MoLoKorp/MolokoBlogEngine.git"
+  },
+  "author": "https://github.com/MoLoKorp",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MoLoKorp/MolokoBlogEngine/issues"
+  },
+  "homepage": "https://github.com/MoLoKorp/MolokoBlogEngine#readme"
+}
