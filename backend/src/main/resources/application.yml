@@ -1,6 +1,13 @@
-spring.data.mongodb.uri: mongodb+srv://moloko:${MONGO_PASSWORD}@molokomongo.e9rs9.mongodb.net/MolokoBlogEngine?retryWrites=true&w=majority
-springdoc.swagger-ui.path: /api
-server.forward-headers-strategy: framework
+spring:
+  data:
+    mongodb:
+      uri: mongodb+srv://moloko:${MONGO_PASSWORD}@molokomongo.e9rs9.mongodb.net/MolokoBlogEngine?retryWrites=true&w=majority
+springdoc:
+  swagger-ui:
+    path: /swagger
+    tryItOutEnabled: true
 server:
+  forward-headers-strategy: native
   error:
     include-stacktrace: never
+    include-message: always

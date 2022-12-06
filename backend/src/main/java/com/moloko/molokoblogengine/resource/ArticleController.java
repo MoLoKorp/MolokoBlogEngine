@@ -3,6 +3,7 @@ package com.moloko.molokoblogengine.resource;
 import com.moloko.molokoblogengine.model.Article;
 import com.moloko.molokoblogengine.repository.ArticleRepository;
 import com.moloko.molokoblogengine.util.Shell;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -64,6 +65,7 @@ public class ArticleController {
   @Cacheable(key = ALL)
   @GetMapping
   @PreAuthorize("permitAll()")
+  @SecurityRequirements
   public Flux<Article> getArticles() {
     return articleRepository.findAll().cache();
   }
@@ -71,6 +73,7 @@ public class ArticleController {
   @Cacheable
   @GetMapping("{id}")
   @PreAuthorize("permitAll()")
+  @SecurityRequirements
   public Mono<Article> getArticle(@PathVariable String id) {
     return articleRepository.findById(id).cache();
   }

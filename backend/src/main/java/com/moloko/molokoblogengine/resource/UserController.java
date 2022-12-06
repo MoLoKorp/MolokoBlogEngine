@@ -2,6 +2,7 @@ package com.moloko.molokoblogengine.resource;
 
 import com.moloko.molokoblogengine.model.User;
 import com.moloko.molokoblogengine.repository.UserRepository;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -53,6 +54,7 @@ public class UserController {
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   @PreAuthorize("permitAll()")
+  @SecurityRequirements
   public Mono<User> createUser(@Validated @RequestBody User user) {
     return userRepository.save(
         new User(user.username(), passwordEncoder.encode(user.password()), user.role()));
