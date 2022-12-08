@@ -10,7 +10,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.util.Date;
 import java.util.UUID;
-import java.util.function.Predicate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheConfig;
@@ -24,6 +23,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.util.StreamUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -96,12 +97,12 @@ public class ArticleController {
   @DeleteMapping("{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER')")
-  public Mono<Void> deleteArticle(@PathVariable String id, Principal principal) {
+  public Mono<Void> deleteArticle(@PathVariable String id) {
     return articleRepository
         .findById(id)
         .switchIfEmpty(
             Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND, ARTICLE_NOT_FOUND)))
-        .filter(isOwner(principal.getName()))
+        .filterWhen(this::isOwnerOrAdmin)
         .switchIfEmpty(
             Mono.error(new ResponseStatusException(HttpStatus.FORBIDDEN, ARTICLE_FORBIDDEN)))
         .flatMap(article -> articleRepository.deleteById(id));
@@ -118,21 +119,18 @@ public class ArticleController {
   @ResponseStatus(HttpStatus.CREATED)
   @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER')")
   public Mono<Article> updateArticle(
-      @PathVariable String id,
-      @Validated @RequestBody Article updatedArticle,
-      Principal principal) {
+      @PathVariable String id, @Validated @RequestBody Article updatedArticle) {
     return articleRepository
         .findById(id)
         .switchIfEmpty(
             Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND, ARTICLE_NOT_FOUND)))
-        .filter(isOwner(principal.getName()))
+        .filterWhen(this::isOwnerOrAdmin)
         .switchIfEmpty(
             Mono.error(new ResponseStatusException(HttpStatus.FORBIDDEN, ARTICLE_FORBIDDEN)))
         .flatMap(
             article ->
-                articleRepository
-                    .save(new Article(id, updatedArticle.text(), principal.getName()))
-                    .cache());
+                articleRepository.save(new Article(id, updatedArticle.text(), article.owner())))
+        .cache();
   }
 
   /** Exports articles to JSON file. */
@@ -185,7 +183,14 @@ public class ArticleController {
     }
   }
 
-  private Predicate<Article> isOwner(String owner) {
-    return article -> article.owner().equals(owner);
+  public Mono<Boolean> isOwnerOrAdmin(Article article) {
+    return ReactiveSecurityContextHolder.getContext()
+        .map(
+            context -> {
+              var auth = context.getAuthentication();
+              return auth.getAuthorities().stream()
+                      .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"))
+                  || ((UserDetails) auth.getPrincipal()).getUsername().equals(article.owner());
+            });
   }
 }

@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -31,7 +32,7 @@ class ArticleControllerTest {
 
   @Mock private Principal principal;
   @Mock private Shell shellMock;
-  @InjectMocks private ArticleController articleControllerMock;
+  @InjectMocks @Spy private ArticleController articleControllerMock;
 
   @Mock private Process processMock;
   @Mock private FilePart filePartMock;
@@ -71,9 +72,9 @@ class ArticleControllerTest {
   void testDeleteArticle() {
     when(articleRepositoryMock.findById("test_id1")).thenReturn(Mono.just(article1));
     when(articleRepositoryMock.deleteById("test_id1")).thenReturn(Mono.empty());
-    when(principal.getName()).thenReturn("test_owner1");
+    when(articleControllerMock.isOwnerOrAdmin(article1)).thenReturn(Mono.just(true));
 
-    var resultMono = articleControllerMock.deleteArticle("test_id1", principal);
+    var resultMono = articleControllerMock.deleteArticle("test_id1");
 
     StepVerifier.create(resultMono).verifyComplete();
   }
@@ -82,9 +83,9 @@ class ArticleControllerTest {
   void testUpdateArticle() {
     when(articleRepositoryMock.findById("test_id1")).thenReturn(Mono.just(article1));
     when(articleRepositoryMock.save(article1)).thenReturn(Mono.just(article1));
-    when(principal.getName()).thenReturn("test_owner1");
+    when(articleControllerMock.isOwnerOrAdmin(article1)).thenReturn(Mono.just(true));
 
-    var resultMono = articleControllerMock.updateArticle("test_id1", article1, principal);
+    var resultMono = articleControllerMock.updateArticle("test_id1", article1);
 
     StepVerifier.create(resultMono)
         .expectNext(new Article("test_id1", "test_text1", "test_owner1"))

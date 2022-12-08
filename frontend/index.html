@@ -22,7 +22,11 @@
         prescript="./eventHandlers#getArticlesHandler"
       />
       <route path="/admin" view="admin" />
-      <route path="/registration" view="registration" />
+      <route
+        path="/registration"
+        view="registration"
+        prescript="./eventHandlers#renderUserIfLoggedIn"
+      />
     </app-router>
   </body>
 </html>
