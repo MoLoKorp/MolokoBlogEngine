@@ -3,6 +3,7 @@ package com.moloko.molokoblogengine.resource;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 import com.moloko.molokoblogengine.model.Article;
@@ -12,15 +13,26 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.security.Principal;
+import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.multipart.FilePart;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.userdetails.User;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -28,10 +40,9 @@ import reactor.test.StepVerifier;
 @ExtendWith(MockitoExtension.class)
 class ArticleControllerTest {
   @Mock private ArticleRepository articleRepositoryMock;
-
   @Mock private Principal principal;
   @Mock private Shell shellMock;
-  @InjectMocks private ArticleController articleControllerMock;
+  @InjectMocks @Spy private ArticleController articleControllerMock;
 
   @Mock private Process processMock;
   @Mock private FilePart filePartMock;
@@ -60,7 +71,6 @@ class ArticleControllerTest {
   @Test
   void testCreateArticle() {
     when(articleRepositoryMock.save(any(Article.class))).thenReturn(Mono.just(article1));
-    when(principal.getName()).thenReturn("test_owner1");
 
     var resultMono = articleControllerMock.createArticle(article1, principal);
 
@@ -71,9 +81,9 @@ class ArticleControllerTest {
   void testDeleteArticle() {
     when(articleRepositoryMock.findById("test_id1")).thenReturn(Mono.just(article1));
     when(articleRepositoryMock.deleteById("test_id1")).thenReturn(Mono.empty());
-    when(principal.getName()).thenReturn("test_owner1");
+    when(articleControllerMock.isOwnerOrAdmin(article1)).thenReturn(Mono.just(true));
 
-    var resultMono = articleControllerMock.deleteArticle("test_id1", principal);
+    var resultMono = articleControllerMock.deleteArticle("test_id1");
 
     StepVerifier.create(resultMono).verifyComplete();
   }
@@ -82,9 +92,9 @@ class ArticleControllerTest {
   void testUpdateArticle() {
     when(articleRepositoryMock.findById("test_id1")).thenReturn(Mono.just(article1));
     when(articleRepositoryMock.save(article1)).thenReturn(Mono.just(article1));
-    when(principal.getName()).thenReturn("test_owner1");
+    when(articleControllerMock.isOwnerOrAdmin(article1)).thenReturn(Mono.just(true));
 
-    var resultMono = articleControllerMock.updateArticle("test_id1", article1, principal);
+    var resultMono = articleControllerMock.updateArticle("test_id1", article1);
 
     StepVerifier.create(resultMono)
         .expectNext(new Article("test_id1", "test_text1", "test_owner1"))
@@ -136,5 +146,62 @@ class ArticleControllerTest {
 
     assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
     assertEquals("Unexpected error during import: something happened!", response.getBody());
+  }
+
+  @Nested
+  class TestIsOwnerOrAdmin {
+    @Mock private SecurityContext securityContext;
+    @Mock private Authentication authentication;
+    @Mock private GrantedAuthority grantedAuthority;
+
+    @BeforeEach
+    void setup() {
+      when(grantedAuthority.getAuthority()).thenReturn("ROLE_USER");
+      doReturn(List.of(grantedAuthority)).when(authentication).getAuthorities();
+      when(securityContext.getAuthentication()).thenReturn(authentication);
+    }
+
+    @Test
+    void testOwner() {
+      try (MockedStatic<ReactiveSecurityContextHolder> ch =
+          Mockito.mockStatic(ReactiveSecurityContextHolder.class)) {
+        when(authentication.getPrincipal())
+            .thenReturn(
+                User.withUsername("test_owner1").password("testPassword").roles("USER").build());
+        ch.when(ReactiveSecurityContextHolder::getContext).thenReturn(Mono.just(securityContext));
+
+        var resultMono = articleControllerMock.isOwnerOrAdmin(article1);
+
+        StepVerifier.create(resultMono).expectNext(true).verifyComplete();
+      }
+    }
+
+    @Test
+    void testNotOwner() {
+      try (MockedStatic<ReactiveSecurityContextHolder> ch =
+          Mockito.mockStatic(ReactiveSecurityContextHolder.class)) {
+        when(authentication.getPrincipal())
+            .thenReturn(
+                User.withUsername("notOwner").password("testPassword").roles("USER").build());
+        ch.when(ReactiveSecurityContextHolder::getContext).thenReturn(Mono.just(securityContext));
+
+        var resultMono = articleControllerMock.isOwnerOrAdmin(article1);
+
+        StepVerifier.create(resultMono).expectNext(false).verifyComplete();
+      }
+    }
+
+    @Test
+    void testAdmin() {
+      try (MockedStatic<ReactiveSecurityContextHolder> ch =
+          Mockito.mockStatic(ReactiveSecurityContextHolder.class)) {
+        when(grantedAuthority.getAuthority()).thenReturn("ROLE_ADMIN");
+        ch.when(ReactiveSecurityContextHolder::getContext).thenReturn(Mono.just(securityContext));
+
+        var resultMono = articleControllerMock.isOwnerOrAdmin(article1);
+
+        StepVerifier.create(resultMono).expectNext(true).verifyComplete();
+      }
+    }
   }
 }

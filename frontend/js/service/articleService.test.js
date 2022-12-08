@@ -1,5 +1,5 @@
 import { getArticles, getArticle, createArticle, updateArticle, deleteArticle, importArticles } from './articleService.js'
-import { jest, expect, test } from '@jest/globals'
+import { jest, expect, test, beforeEach } from '@jest/globals'
 
 const articles = [
   {
@@ -11,6 +11,13 @@ const articles = [
     text: 'article2'
   }
 ]
+
+beforeEach(() => {
+  const localStorageMock = {
+    getItem: jest.fn()
+  }
+  global.localStorage = localStorageMock
+})
 
 test('getArticles successfully fetches 2 articles', async () => {
   global.fetch = jest.fn(() =>
