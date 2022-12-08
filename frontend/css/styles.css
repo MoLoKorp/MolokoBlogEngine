@@ -11,10 +11,6 @@ form {
   margin: 1vw;
 }
 
-#menu {
-  text-align: right;
-}
-
 @media all and (max-width: 500px) {
   body {
     font-size: 6vw;

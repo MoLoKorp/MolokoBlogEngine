@@ -5,8 +5,8 @@
   "scripts": {
     "start": "serve",
     "test": "NODE_OPTIONS=--experimental-vm-modules npx jest",
-    "lint": "standard --env browser js jest.config.js --fix && prettier --check index.html views",
-    "format": "prettier --write index.html views"
+    "lint": "standard --env browser js jest.config.js --fix && prettier --check index.html views css",
+    "format": "prettier --write index.html views css"
   },
   "devDependencies": {
     "jest": "^28.1.3",
