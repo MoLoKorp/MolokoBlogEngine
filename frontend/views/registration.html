@@ -6,7 +6,7 @@
     <title>Registration</title>
   </head>
   <body>
-    <div id="menu">
+    <div id="menu" renderIf="./eventHandlers#isNotLoggedIn">
       <p>username:</p>
       <input id="username" />
       <p>password:</p>
@@ -16,6 +16,10 @@
       <button type="button" on#click="./eventHandlers#register">
         Create new account
       </button>
+    </div>
+    <div renderIf="./eventHandlers#isLoggedIn">
+      <p>you are logged in</p>
+      <button type="button" on#click="./eventHandlers#logout">Log out</button>
     </div>
   </body>
 </html>

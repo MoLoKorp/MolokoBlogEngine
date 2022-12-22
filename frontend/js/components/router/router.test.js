@@ -8,7 +8,7 @@ import { jest, expect, test, beforeAll, describe, beforeEach } from '@jest/globa
 describe('Router', () => {
   beforeAll(() => {
     customElements.define('app-router', Router)
-
+    Router.importFunc = jest.fn()
     global.fetch = jest.fn((url) => {
       if (url.includes('firstView')) {
         return Promise.resolve({
@@ -16,7 +16,7 @@ describe('Router', () => {
         })
       }
       return Promise.resolve({
-        text: () => '<p>secondView</p>'
+        text: () => '<p>secondView</p><p renderIf="testCondition">hidden</p>'
       })
     })
   })
@@ -24,7 +24,7 @@ describe('Router', () => {
   beforeEach(() => {
     document.body.innerHTML = `
         <body>
-            <a href="/secondView" class="routed">
+            <a href="/secondView" class="routed">false
             <app-router default="/">
                 <route path="/" view="firstView" />
                 <route path="/secondView" view="secondView" />
@@ -52,5 +52,25 @@ describe('Router', () => {
 
     rootDiv = document.getElementById('root')
     expect(rootDiv.firstChild.textContent).toEqual('firstView')
+  })
+
+  test('renders two paragraphs if condition of second is true', async () => {
+    Router.importFunc = jest.fn(() => Promise.resolve(true))
+
+    document.getElementsByClassName('routed')[0].click()
+    await new Promise(resolve => setTimeout(resolve, 10))
+
+    const rootDiv = document.getElementById('root')
+    expect(rootDiv.children.length).toEqual(2)
+  })
+
+  test('renders one paragrap if condition of second is false', async () => {
+    Router.importFunc = jest.fn(() => Promise.resolve(false))
+
+    document.getElementsByClassName('routed')[0].click()
+    await new Promise(resolve => setTimeout(resolve, 10))
+
+    const rootDiv = document.getElementById('root')
+    expect(rootDiv.children.length).toEqual(1)
   })
 })
