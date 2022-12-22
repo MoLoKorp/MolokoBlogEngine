@@ -20,13 +20,9 @@
         path="/"
         view="articles"
         prescript="./eventHandlers#getArticlesHandler"
-      />
-      <route path="/admin" view="admin" />
-      <route
-        path="/registration"
-        view="registration"
-        prescript="./eventHandlers#renderUserIfLoggedIn"
-      />
+      ></route>
+      <route path="/admin" view="admin"></route>
+      <route path="/registration" view="registration"></route>
     </app-router>
   </body>
 </html>

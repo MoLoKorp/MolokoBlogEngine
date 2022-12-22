@@ -60,9 +60,22 @@ export class Router extends HTMLElement {
   static async #addViewToRouterDom (route) {
     const { view, prescript } = Router.#routes[route]
     Router.#root.innerHTML = await (await fetch(`/views/${view}.html`)).text()
+
     if (prescript) {
-      const [modulePath, func] = prescript.split('#')
-      import(`../../${modulePath}.js`).then(mod => mod[func]())
+      this.importFunc(prescript)
     }
+
+    const conditions = Router.#root.querySelectorAll('[renderIf]')
+    for (const condition of conditions) {
+      if (!await this.importFunc(condition.attributes.renderIf.value)) {
+        condition.remove()
+      }
+    }
+  }
+
+  // TODO how to mock private method with JEST?
+  static async importFunc (hashstring) {
+    const [modulePath, func] = hashstring.split('#')
+    return await import(`../../${modulePath}.js`).then(mod => mod[func]())
   }
 }

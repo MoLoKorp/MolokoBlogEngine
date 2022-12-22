@@ -84,7 +84,7 @@ const getUserAuth = () => {
 
 const login = () => {
   localStorage.setItem('auth', getUserAuth())
-  renderUserIfLoggedIn()
+  window.location.href = '/'
 }
 
 const logout = e => {
@@ -93,14 +93,7 @@ const logout = e => {
 }
 
 const isLoggedIn = () => !!localStorage.getItem('auth')
-
-const renderUserIfLoggedIn = () => {
-  if (isLoggedIn()) {
-    document.getElementById('root').innerHTML =
-                '<p>you are logged in</p>' +
-                '<button type="button" on#click="./eventHandlers#logout">Log out</button>'
-  }
-}
+const isNotLoggedIn = () => !localStorage.getItem('auth')
 
 const register = async (e) => {
   const username = document.getElementById('username').value
@@ -118,6 +111,6 @@ export {
   login,
   register,
   isLoggedIn,
-  logout,
-  renderUserIfLoggedIn
+  isNotLoggedIn,
+  logout
 }
