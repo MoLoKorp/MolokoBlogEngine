@@ -28,8 +28,13 @@ const updateArticle = async (id, article) => {
   return await response.json()
 }
 
+const exportArticles = async () =>
+  await fetch(`${config.apiUrl}/article/export`, {
+    headers: { Authorization: localStorage.getItem('auth') }
+  })
+
 const importArticles = async (importFile) =>
-  await fetch('article/import', {
+  await fetch(`${config.apiUrl}/article/import`, {
     method: 'POST',
     body: importFile,
     headers: { Authorization: localStorage.getItem('auth') }
@@ -47,5 +52,6 @@ export {
   createArticle,
   updateArticle,
   deleteArticle,
-  importArticles
+  importArticles,
+  exportArticles
 }
