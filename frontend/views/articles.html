@@ -11,5 +11,26 @@
       create
     </button>
     <h1>Welcome to Moloko Blog!!!</h1>
+    <div renderFor="service/articleService#getArticles">
+      <div renderIf="./eventHandlers#isNotInUpdate#{id}">
+        <p id="{id}">
+          {text} owner: {owner}
+          <span renderIf="./service/userService#isLoggedIn">
+            <button on#click="./eventHandlers#editArticleHandler#{id}#{text}">
+              edit
+            </button>
+            <button on#click="./eventHandlers#deleteArticleHandler#{id}">
+              delete
+            </button>
+          </span>
+        </p>
+      </div>
+      <div renderIf="./eventHandlers#isInUpdate#{id}">
+        <input id="update_{id}" name="text" value="{text}" />
+        <button on#click="./eventHandlers#updateArticleHandler#{id}">
+          update
+        </button>
+      </div>
+    </div>
   </body>
 </html>

@@ -15,6 +15,7 @@ Example:
 </app-router>
 */
 
+export const reRender = new CustomEvent('re-render')
 export class Router extends HTMLElement {
   static #routes = {}
   static #root
@@ -48,6 +49,10 @@ export class Router extends HTMLElement {
     window.addEventListener('DOMContentLoaded', async function () {
       await Router.#addViewToRouterDom(Router.#default)
     })
+
+    window.addEventListener('re-render', async function () {
+      await Router.#addViewToRouterDom(window.location.pathname || Router.#default)
+    })
   }
 
   async #renderView (event) {
@@ -59,23 +64,39 @@ export class Router extends HTMLElement {
 
   static async #addViewToRouterDom (route) {
     const { view, prescript } = Router.#routes[route]
-    Router.#root.innerHTML = await (await fetch(`/views/${view}.html`)).text()
+    const rootClone = Router.#root.cloneNode()
+    rootClone.innerHTML = await (await fetch(`/views/${view}.html`)).text()
 
     if (prescript) {
       this.importFunc(prescript)
     }
 
-    const conditions = Router.#root.querySelectorAll('[renderIf]')
-    for (const condition of conditions) {
-      if (!await this.importFunc(condition.attributes.renderIf.value)) {
-        condition.remove()
+    const renderForTags = rootClone.querySelectorAll('[renderFor]')
+    for (const renderForTag of renderForTags) {
+      const result = []
+      const renderForTagElements = await this.importFunc(renderForTag.attributes.renderFor.value)
+      for (const renderForTagElement of renderForTagElements) {
+        const renderForTagClone = renderForTag.cloneNode(true)
+        renderForTagClone.innerHTML = renderForTagClone.innerHTML.replace(/{(.*?)}/g,
+          (match) => renderForTagElement[match.slice(1, -1)])
+        result.push(renderForTagClone)
+      }
+      renderForTag.replaceWith(...result)
+    }
+
+    const renderIfTags = rootClone.querySelectorAll('[renderIf]')
+    for (const renderIfTag of renderIfTags) {
+      if (!await this.importFunc(renderIfTag.attributes.renderIf.value)) {
+        renderIfTag.remove()
       }
     }
+
+    Router.#root.innerHTML = rootClone.innerHTML
   }
 
   // TODO how to mock private method with JEST?
   static async importFunc (hashstring) {
-    const [modulePath, func] = hashstring.split('#')
-    return await import(`../../${modulePath}.js`).then(mod => mod[func]())
+    const [modulePath, func, ...args] = hashstring.split('#')
+    return await import(`../../${modulePath}.js`).then(mod => mod[func](...args))
   }
 }

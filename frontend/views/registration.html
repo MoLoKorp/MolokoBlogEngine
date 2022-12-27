@@ -6,20 +6,24 @@
     <title>Registration</title>
   </head>
   <body>
-    <div id="menu" renderIf="./eventHandlers#isNotLoggedIn">
+    <div id="menu" renderIf="./service/userService#isNotLoggedIn">
       <p>username:</p>
       <input id="username" />
       <p>password:</p>
       <input id="password" />
       <p></p>
-      <button type="button" on#click="./eventHandlers#login">Log In</button>
-      <button type="button" on#click="./eventHandlers#register">
+      <button type="button" on#click="./service/userService#login">
+        Log In
+      </button>
+      <button type="button" on#click="./service/userService#register">
         Create new account
       </button>
     </div>
-    <div renderIf="./eventHandlers#isLoggedIn">
+    <div renderIf="./service/userService#isLoggedIn">
       <p>you are logged in</p>
-      <button type="button" on#click="./eventHandlers#logout">Log out</button>
+      <button type="button" on#click="./service/userService#logout">
+        Log out
+      </button>
     </div>
   </body>
 </html>

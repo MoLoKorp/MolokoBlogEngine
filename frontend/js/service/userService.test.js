@@ -1,4 +1,4 @@
-import { registerUser } from './userService.js'
+import { createUser } from './userService.js'
 import { jest, expect, test } from '@jest/globals'
 
 test('registerUser successfully calls registerUser API', async () => {
@@ -12,6 +12,6 @@ test('registerUser successfully calls registerUser API', async () => {
       json: () => Promise.resolve(user)
     })
   )
-  const result = await registerUser('testUsername', 'testPassword')
+  const result = await createUser('testUsername', 'testPassword')
   expect(result).toEqual(user)
 })
