@@ -12,7 +12,7 @@
     </button>
     <h1>Welcome to Moloko Blog!!!</h1>
     <div renderFor="service/articleService#getArticles">
-      <div renderIf="./eventHandlers#isNotInUpdate#{id}">
+      <div renderIf="!./eventHandlers#isInUpdate#{id}">
         <p id="{id}">
           {text} owner: {owner}
           <span renderIf="./service/userService#isLoggedIn">

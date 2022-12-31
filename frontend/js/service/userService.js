@@ -32,14 +32,12 @@ const register = async () => {
   alert(`you have registered as ${username}`)
 }
 
-const isNotLoggedIn = () => !localStorage.getItem('auth')
-const isLoggedIn = () => !isNotLoggedIn()
+const isLoggedIn = () => !!localStorage.getItem('auth')
 
 export {
   createUser,
   login,
   logout,
   register,
-  isLoggedIn,
-  isNotLoggedIn
+  isLoggedIn
 }
