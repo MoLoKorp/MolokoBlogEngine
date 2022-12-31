@@ -86,7 +86,11 @@ export class Router extends HTMLElement {
 
     const renderIfTags = rootClone.querySelectorAll('[renderIf]')
     for (const renderIfTag of renderIfTags) {
-      if (!await this.importFunc(renderIfTag.attributes.renderIf.value)) {
+      const pathToFunction = renderIfTag.attributes.renderIf.value
+      const renderIfCondition = pathToFunction.startsWith('!') ?
+        !await this.importFunc(pathToFunction.substring(1)) :
+        await this.importFunc(pathToFunction)
+      if (!renderIfCondition) {
         renderIfTag.remove()
       }
     }

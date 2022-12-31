@@ -6,7 +6,7 @@
     <title>Registration</title>
   </head>
   <body>
-    <div id="menu" renderIf="./service/userService#isNotLoggedIn">
+    <div id="menu" renderIf="!./service/userService#isLoggedIn">
       <p>username:</p>
       <input id="username" />
       <p>password:</p>

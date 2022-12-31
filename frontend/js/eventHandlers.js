@@ -13,9 +13,7 @@ const createArticleHandler = async () => {
   window.dispatchEvent(reRender)
 }
 
-const isNotInUpdate = (id) => !localStorage.getItem(id)
-const isInUpdate = (id) => !isNotInUpdate(id)
-
+const isInUpdate = (id) => !!localStorage.getItem(id)
 const updateArticleHandler = async (_e, id) => {
   await updateArticle(id, { text: document.getElementById(`update_${id}`).value })
   localStorage.removeItem(id)
@@ -47,6 +45,5 @@ export {
   editArticleHandler,
   deleteArticleHandler,
   updateArticleHandler,
-  isInUpdate,
-  isNotInUpdate
+  isInUpdate
 }
