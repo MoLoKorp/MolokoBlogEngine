@@ -4,6 +4,7 @@ plugins {
 	id 'jacoco'
 	id "com.diffplug.spotless" version "6.9.1"
 	id 'checkstyle'
+	id 'info.solidsoft.pitest' version '1.9.11'
 }
 
 group = 'com.moloko'
@@ -65,6 +66,13 @@ jacocoTestCoverageVerification {
 	}
 }
 check.dependsOn jacocoTestCoverageVerification
+
+/*----------------------------------PITEST CONFIG--------------------------------*/
+pitest {
+	junit5PluginVersion = '1.1.2'
+	mutationThreshold = 70
+}
+check.dependsOn 'pitest'
 
 spotless {
 	java {
